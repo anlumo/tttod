@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "tttod_server",
+]
+
+exclude = [
+    "tttod_frontend",
+]

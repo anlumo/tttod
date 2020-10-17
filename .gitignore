@@ -1,0 +1,6 @@
+/target
+/tttod_frontend/node_modules
+/tttod_frontend/dist
+/tttod_frontend/target
+/tttod_frontend/pkg
+/tttod_frontend/wasm-pack.log
