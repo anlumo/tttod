@@ -15,6 +15,12 @@ module.exports = {
   },
   devServer: {
     contentBase: dist,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8081',
+        secure: false
+      }
+    }
   },
   plugins: [
     new CopyPlugin([
