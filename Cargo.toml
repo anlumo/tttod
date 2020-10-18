@@ -2,6 +2,7 @@
 
 members = [
     "tttod_server",
+    "tttod_data",
 ]
 
 exclude = [

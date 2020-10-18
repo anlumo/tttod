@@ -1,5 +1,9 @@
+#![recursion_limit = "256"]
 use wasm_bindgen::prelude::*;
 use web_sys::console;
+use yew::prelude::*;
+
+mod components;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -43,6 +47,8 @@ pub fn main_js() -> Result<(), JsValue> {
             JsValue::from_str(&format!("Failed initializing logging: {}", fernerr))
         })?;
     log::debug!("Logging initialized.");
+
+    App::<components::Root>::new().mount_to_body();
 
     Ok(())
 }

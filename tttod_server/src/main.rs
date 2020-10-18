@@ -1,11 +1,25 @@
+#![feature(drain_filter)]
 use actix_web::{get, middleware, App, HttpServer, Responder};
-use std::{net::SocketAddr, path::PathBuf, str::FromStr};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    path::PathBuf,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
 use structopt::StructOpt;
 
 mod config;
 use config::Config;
 mod error;
 pub use error::Error;
+mod clues;
+pub use clues::Question;
+mod game;
+pub use game::Game;
+mod websocket;
+
+type Games = Arc<Mutex<HashMap<String, Game>>>;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "tttod-server", about = "Backend for To the Temple of Doom!")]
@@ -45,10 +59,14 @@ async fn main() -> std::io::Result<()> {
         .or(config.server.address)
         .unwrap_or_else(|| SocketAddr::from_str("127.0.0.1:8081").unwrap());
 
+    let games: Games = Arc::new(Mutex::new(HashMap::new()));
+
     HttpServer::new(move || {
         App::new()
             .data(config.clone())
+            .data(games.clone())
             .wrap(middleware::Logger::default())
+            .service(websocket::index)
             .service(index)
     })
     .bind(address)?

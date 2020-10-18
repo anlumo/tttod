@@ -19,6 +19,7 @@ log = "0.4"
 fern = "0.5"
 rand = "0.7"
 wee_alloc = "0.4.2"
+tttod_data = { path = "../tttod_data" }
 
 [dependencies.web-sys]
 version = "0.3.22"

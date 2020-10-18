@@ -8,7 +8,7 @@ logging:
     # An appender named "requests" that writes to a file with a custom pattern encoder
     file:
       kind: rolling_file
-      path: dungeonfog.log
+      path: ttod.log
       policy:
         kind: compound
         trigger:
