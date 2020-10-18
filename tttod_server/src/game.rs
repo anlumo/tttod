@@ -101,6 +101,11 @@ impl GameManager {
             log::error!("enter_temple: {:?}", err);
             return;
         }
+        // face the ancient evil
+        if let Err(err) = instance.face_ancient_evil().await {
+            log::error!("face_ancient_evil: {:?}", err);
+            return;
+        }
     }
 
     async fn wait_for_players(&mut self) -> Result<(), Error> {
@@ -392,6 +397,9 @@ impl GameManager {
             }
         }
 
+        Ok(())
+    }
+    async fn face_ancient_evil(&mut self) -> Result<(), Error> {
         Ok(())
     }
 }
