@@ -1,5 +1,5 @@
-mod player;
-pub use player::Player;
+mod lobby;
+pub use lobby::Lobby;
 
 use uuid::Uuid;
 use yew::prelude::*;
@@ -86,7 +86,7 @@ impl Component for Game {
                 match self.state {
                     GameState::PlayerSelection => {
                         html! {
-                            <Player set_name=set_name_callback/>
+                            <Lobby set_name=set_name_callback/>
                         }
                     }
                     GameState::QuestionsAndAnswers => {

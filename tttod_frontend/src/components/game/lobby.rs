@@ -7,7 +7,7 @@ use web_sys::HtmlElement;
 use ybc::TileSize;
 use yew::prelude::*;
 
-pub struct Player {
+pub struct Lobby {
     link: ComponentLink<Self>,
     props: Props,
     input_ref: NodeRef,
@@ -26,7 +26,7 @@ pub enum Msg {
     EnterGame,
 }
 
-impl Component for Player {
+impl Component for Lobby {
     type Message = Msg;
     type Properties = Props;
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
