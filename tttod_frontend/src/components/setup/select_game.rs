@@ -1,5 +1,4 @@
 use crate::components::{root::AppRoute, Introduction};
-use js_sys::Function;
 use wasm_bindgen::{closure::Closure, JsCast};
 use web_sys::HtmlElement;
 use ybc::TileSize;
