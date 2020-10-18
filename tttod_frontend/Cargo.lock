@@ -628,6 +628,7 @@ dependencies = [
  "tttod_data",
  "uuid",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
  "wee_alloc",
  "ws_stream_wasm",
