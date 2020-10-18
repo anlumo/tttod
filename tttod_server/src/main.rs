@@ -1,4 +1,5 @@
-#![feature(drain_filter)]
+#![feature(drain_filter, map_into_keys_values)]
+#![allow(clippy::single_match)]
 use actix_web::{get, middleware, App, HttpServer, Responder};
 use std::{
     collections::HashMap,

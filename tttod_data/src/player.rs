@@ -57,5 +57,6 @@ pub struct PlayerStats {
     pub booksmart: u8,
     pub streetwise: u8,
     pub artifact_name: String,
+    pub artifact_origin: String,
     pub artifact_power: ArtifactPower,
 }

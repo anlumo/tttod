@@ -1,6 +1,7 @@
+use enum_iterator::IntoEnumIterator;
 use std::fmt;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, IntoEnumIterator)]
 pub enum Question {
     SourceOfPower,
     Weakness,
