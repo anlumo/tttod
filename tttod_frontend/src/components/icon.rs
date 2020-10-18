@@ -8,6 +8,8 @@ pub struct Icon {
 #[derive(Debug, Clone, Properties)]
 pub struct Props {
     pub name: IconName,
+    #[prop_or_default]
+    pub classes: Option<String>,
 }
 
 impl Component for Icon {
@@ -30,7 +32,7 @@ impl Component for Icon {
         let icon_name = icon_name.strip_prefix('"').unwrap();
         let icon_name = icon_name.strip_suffix('"').unwrap();
         html! {
-            <i class={ format!("fas fa-{}", icon_name) }></i>
+            <i class={ format!("fas fa-{} {}", icon_name, self.props.classes.as_deref().unwrap_or_default()) }></i>
         }
     }
 }

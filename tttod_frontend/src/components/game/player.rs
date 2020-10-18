@@ -1,4 +1,7 @@
-use crate::components::Introduction;
+use crate::{
+    components::{Icon, Introduction},
+    IconName,
+};
 use wasm_bindgen::{closure::Closure, JsCast};
 use web_sys::HtmlElement;
 use ybc::TileSize;
@@ -79,9 +82,12 @@ impl Component for Player {
                 <Introduction/>
                 <ybc::Tile vertical=true size=TileSize::Four>
                     <ybc::Section>
-                        <ybc::Field>
+                        <ybc::Field classes="control has-icons-left">
                            <ybc::Input name="game" update=update_name_callback value=self.player_name.clone() placeholder="Player name" rounded=false ref=self.input_ref.clone()/>
-                        </ybc::Field>
+                           <span class="icon is-small is-left">
+                                <Icon name=IconName::User/>
+                            </span>
+                       </ybc::Field>
                         <ybc::Field>
                             <ybc::Button disabled=self.player_name.is_empty() onclick=game_callback>{"Enter the Temple"}</ybc::Button>
                         </ybc::Field>
