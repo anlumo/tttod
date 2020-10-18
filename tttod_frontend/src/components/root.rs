@@ -135,7 +135,7 @@ impl Root {
     fn view_navend(&self) -> Html {
         html! {
             <ybc::NavbarItem tag=A href="https://storybrewersroleplaying.com/temple-of-doom/">
-                { "by Storybrewers Roleplaying" }
+                { "RPG by Storybrewers Roleplaying" }
             </ybc::NavbarItem>
         }
     }
