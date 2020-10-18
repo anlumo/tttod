@@ -566,6 +566,7 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "fern",
+ "js-sys",
  "log",
  "rand",
  "serde",

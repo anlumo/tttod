@@ -1,5 +1,6 @@
 use crate::components::{root::AppRoute, Introduction};
-use wasm_bindgen::JsCast;
+use js_sys::Function;
+use wasm_bindgen::{closure::Closure, JsCast};
 use web_sys::HtmlElement;
 use ybc::TileSize;
 use yew::prelude::*;
@@ -13,6 +14,7 @@ pub struct SelectGame {
     input_ref: NodeRef,
     game_name: String,
     router: RouteAgentDispatcher,
+    keyup_closure: Closure<dyn FnMut(web_sys::KeyboardEvent)>,
 }
 
 pub enum Msg {
@@ -24,11 +26,20 @@ impl Component for SelectGame {
     type Message = Msg;
     type Properties = ();
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let inner_link = link.clone();
+        let keyup_closure = Closure::wrap(Box::new(move |event: KeyboardEvent| {
+            log::debug!("key = {}", event.key());
+            if event.key() == "Enter" {
+                inner_link.send_message(Msg::EnterGame);
+                event.stop_propagation();
+            }
+        }) as Box<dyn FnMut(web_sys::KeyboardEvent)>);
         Self {
             link,
             input_ref: NodeRef::default(),
             game_name: "".to_owned(),
             router: RouteAgentDispatcher::new(),
+            keyup_closure,
         }
     }
 
@@ -56,6 +67,7 @@ impl Component for SelectGame {
             if let Some(node) = self.input_ref.get() {
                 if let Some(element) = node.dyn_ref::<HtmlElement>() {
                     element.focus().ok();
+                    element.set_onkeyup(self.keyup_closure.as_ref().dyn_ref());
                 }
             }
         }
