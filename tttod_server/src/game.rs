@@ -53,22 +53,25 @@ struct GameManager {
 }
 
 impl GameManager {
+    fn send_all(&self, message: ServerToClientMessage) -> Result<(), Error> {
+        for (_, senders) in self.players.values() {
+            for sender in senders {
+                sender.unbounded_send(message.clone())?;
+            }
+        }
+        Ok(())
+    }
     fn push_state_all(&self, game_state: GameState) -> Result<(), Error> {
-        let all_players: HashMap<_, _> = self
+        let players: HashMap<_, _> = self
             .players
             .iter()
             .map(|(id, (player, _))| (*id, player.clone()))
             .collect();
-        for (_, senders) in self.players.values() {
-            for sender in senders {
-                sender.unbounded_send(ServerToClientMessage::PushState {
-                    players: all_players.clone(),
-                    game_state,
-                    player_kick_votes: self.player_kick_votes.clone(),
-                })?;
-            }
-        }
-        Ok(())
+        self.send_all(ServerToClientMessage::PushState {
+            players,
+            game_state,
+            player_kick_votes: self.player_kick_votes.clone(),
+        })
     }
     pub async fn run_game(receiver: UnboundedReceiver<InternalMessage>) {
         let mut instance = GameManager {
@@ -349,7 +352,13 @@ impl GameManager {
             player.ready = false;
         }
         self.push_state_all(GameState::Game)?;
-        while !self.players.values().all(|(player, _)| player.ready) {
+        let mut rng = rand::thread_rng();
+        let mut gms: Vec<Uuid> = self.players.keys().cloned().collect();
+        gms.shuffle(&mut rng);
+
+        for gm in gms {
+            self.send_all(ServerToClientMessage::DeclareGM(gm))?;
+
             match self.receiver.next().await {
                 None => {
                     log::error!("Game failed");

@@ -25,6 +25,7 @@ pub enum ServerToClientMessage {
         player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
     },
     Questions(Vec<(String, Option<String>)>),
+    DeclareGM(Uuid),
     EndGame,
 }
 
