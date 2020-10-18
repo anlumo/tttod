@@ -1,7 +1,8 @@
 mod root;
 pub use root::Root;
-mod setup;
 mod icon;
+mod setup;
 pub use icon::Icon;
 mod introduction;
 pub use introduction::Introduction;
+mod game;

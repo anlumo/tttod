@@ -1,5 +1,5 @@
-use yew::prelude::*;
 use crate::icon_names::IconName;
+use yew::prelude::*;
 
 pub struct Icon {
     props: Props,
@@ -14,12 +14,10 @@ impl Component for Icon {
     type Message = ();
     type Properties = Props;
     fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Self {
-            props
-        }
+        Self { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         false
     }
 
@@ -35,7 +33,4 @@ impl Component for Icon {
             <i class={ format!("fas fa-{}", icon_name) }></i>
         }
     }
-
 }
-
-

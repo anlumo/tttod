@@ -1,14 +1,6 @@
-use super::{
-    setup::{Player, SelectGame},
-    Icon,
-};
+use super::{game::Game, setup::SelectGame, Icon};
 use crate::IconName;
-use ybc::{
-    Navbar, NavbarDivider, NavbarDropdown,
-    NavbarFixed::Top,
-    NavbarItem,
-    NavbarItemTag::{Div, A},
-};
+use ybc::NavbarItemTag::A;
 use yew::prelude::*;
 use yew_router::{router::Router, Switch};
 
@@ -20,46 +12,26 @@ pub enum AppRoute {
     Index,
 }
 
-pub struct Root {
-    link: ComponentLink<Self>,
-    state: GameState,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GameState {
-    PlayerSelection,
-    QuestionsAndAnswers,
-    CharacterCreation,
-    Game,
-}
+pub struct Root;
 
 pub enum Msg {}
 
 impl Component for Root {
     type Message = Msg;
     type Properties = ();
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            link,
-            state: GameState::PlayerSelection,
-        }
+    fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        // match msg {
-        // }
-        true
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        false
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        // Should only return "true" if new properties are different to
-        // previously received properties.
-        // This component has no properties so we will always return "false".
         false
     }
 
     fn view(&self) -> Html {
-        let state = self.state;
         html! {
             <>
                 <ybc::Navbar navbrand=self.view_navbrand() navstart=self.view_navstart() navend=self.view_navend()/>
@@ -69,27 +41,8 @@ impl Component for Root {
                             Router::render(move |switch| {
                                 match switch {
                                     AppRoute::Game(game_name) => {
-                                        match state {
-                                            GameState::PlayerSelection => {
-                                                html! {
-                                                    <Player/>
-                                                }
-                                            }
-                                            GameState::QuestionsAndAnswers => {
-                                                html! {
-                                                    <div/>
-                                                }
-                                            }
-                                            GameState::CharacterCreation => {
-                                                html! {
-                                                    <div/>
-                                                }
-                                            }
-                                            GameState::Game => {
-                                                html! {
-                                                    <div/>
-                                                }
-                                            }
+                                        html! {
+                                            <Game game_name=game_name/>
                                         }
                                     }
                                     AppRoute::Index => {
