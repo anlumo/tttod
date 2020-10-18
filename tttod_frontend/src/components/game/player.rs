@@ -13,6 +13,7 @@ pub struct Player {
     input_ref: NodeRef,
     player_name: String,
     keyup_closure: Closure<dyn FnMut(web_sys::KeyboardEvent)>,
+    loading: bool,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -42,6 +43,7 @@ impl Component for Player {
             input_ref: NodeRef::default(),
             player_name: "".to_owned(),
             keyup_closure,
+            loading: false,
         }
     }
 
@@ -52,8 +54,13 @@ impl Component for Player {
                 true
             }
             Msg::EnterGame => {
-                self.props.set_name.emit(self.player_name.clone());
-                false
+                if !self.loading {
+                    self.props.set_name.emit(self.player_name.clone());
+                    self.loading = true;
+                    true
+                } else {
+                    false
+                }
             }
         }
     }
@@ -89,7 +96,7 @@ impl Component for Player {
                             </span>
                        </ybc::Field>
                         <ybc::Field>
-                            <ybc::Button disabled=self.player_name.is_empty() onclick=game_callback>{"Enter the Temple"}</ybc::Button>
+                            <ybc::Button loading=self.loading disabled=self.player_name.is_empty() onclick=game_callback>{"Enter the Temple"}</ybc::Button>
                         </ybc::Field>
                     </ybc::Section>
                 </ybc::Tile>

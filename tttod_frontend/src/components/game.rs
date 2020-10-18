@@ -1,6 +1,7 @@
 mod player;
 pub use player::Player;
 
+use uuid::Uuid;
 use yew::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -15,6 +16,7 @@ pub struct Game {
     link: ComponentLink<Self>,
     props: Props,
     state: GameState,
+    player_id: Uuid,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -26,14 +28,33 @@ pub enum Msg {
     SetPlayerName(String),
 }
 
+fn local_storage() -> web_sys::Storage {
+    web_sys::window().unwrap().local_storage().unwrap().unwrap()
+}
+
 impl Component for Game {
     type Message = Msg;
     type Properties = Props;
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let storage = local_storage();
+        let player_id = if let Some(player_id) = storage
+            .get_item("player_id")
+            .unwrap()
+            .and_then(|player_id| Uuid::parse_str(&player_id).ok())
+        {
+            player_id
+        } else {
+            let player_id = Uuid::new_v4();
+            storage
+                .set_item("player_id", &format!("{}", player_id))
+                .unwrap();
+            player_id
+        };
         Self {
             link,
             props,
             state: GameState::PlayerSelection,
+            player_id,
         }
     }
 
@@ -49,6 +70,12 @@ impl Component for Game {
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.props = props;
         true
+    }
+
+    fn rendered(&mut self, first_render: bool) {
+        if first_render {
+            // TODO
+        }
     }
 
     fn view(&self) -> Html {

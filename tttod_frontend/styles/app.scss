@@ -31,6 +31,10 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 @import '~@fortawesome/fontawesome-free/scss/solid';
 @import '~@fortawesome/fontawesome-free/scss/regular';
 
+.button.is-loading::after {
+    border-color: transparent transparent $text-strong $text-strong !important;
+}
+
 * {
     user-select: none;
 }
@@ -82,4 +86,3 @@ button {
     font-family: 'Adventure';
     margin-bottom: 1em;
 }
-
