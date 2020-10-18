@@ -8,11 +8,20 @@
     "test": "cargo test && wasm-pack test --headless"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.1",
     "@wasm-tool/wasm-pack-plugin": "^1.1.0",
     "copy-webpack-plugin": "^5.0.3",
-    "webpack": "^4.42.0",
+    "css-loader": "^5.0.0",
+    "file-loader": "^6.1.1",
+    "node-sass": "^4.14.1",
+    "rimraf": "^3.0.0",
+    "sass-loader": "^10.0.3",
+    "style-loader": "^2.0.0",
+    "webpack": "^4.44.2",
     "webpack-cli": "^3.3.3",
-    "webpack-dev-server": "^3.7.1",
-    "rimraf": "^3.0.0"
+    "webpack-dev-server": "^3.7.1"
+  },
+  "dependencies": {
+    "bulma": "^0.9.1"
   }
 }

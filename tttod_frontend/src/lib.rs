@@ -4,6 +4,8 @@ use web_sys::console;
 use yew::prelude::*;
 
 mod components;
+mod icon_names;
+use icon_names::IconName;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;

@@ -1,0 +1,85 @@
+@font-face {
+    font-family: "Adventure";
+    font-style: normal;
+    font-weight: normal;
+    src: url("../fonts/Adventure.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Piazzolla";
+    font-style: normal;
+    font-weight: normal;
+    src: url("../fonts/Piazzolla-VariableFont_opsz,wght.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Piazzolla";
+    font-style: italic;
+    font-weight: normal;
+    src: url("../fonts/Piazzolla-Italic-VariableFont_opsz,wght.ttf") format("truetype");
+}
+
+$primary: #fc0;
+$navbar-background-color: $primary;
+$button-background-color: $primary;
+
+@import "~bulma/bulma.sass";
+
+$fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
+
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+@import '~@fortawesome/fontawesome-free/scss/solid';
+@import '~@fortawesome/fontawesome-free/scss/regular';
+
+* {
+    user-select: none;
+}
+
+html {
+    width: 100%;
+    min-height: 100%;
+    overflow-y: auto;
+}
+
+body {
+    font-family: 'Piazzolla';
+    background-image: url("../images/background.jpg");
+    background-size: cover;
+    background-attachment: fixed;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-height: 100%;
+    overflow-y: auto;
+}
+
+.logo {
+    font-size: 22px;
+    .fas {
+        font-size: 2em;
+        padding-right: 0.2em;
+    }
+}
+
+.title {
+    font-family: 'Adventure';
+    &.is-3 {
+        color: $primary;
+    }
+}
+button {
+    font-family: 'Adventure';
+}
+
+.tile.top-level {
+    background-color: adjust-color($scheme-main, $alpha: -0.2);
+    border-radius: 5px;
+    padding: 1em;
+}
+
+.navbar {
+    font-family: 'Adventure';
+    margin-bottom: 1em;
+}
+

@@ -50,6 +50,12 @@ npm test -- --safari
 
 ## Sources
 
-background images:
+### Background Images
+
 https://www.pexels.com/photo/man-looking-at-an-ancient-temple-2495575/
 https://www.pexels.com/photo/horse-with-trailer-in-front-of-petra-1631665/
+
+### Fonts
+
+https://www.ffonts.net/Adventure-Normal.font
+https://fonts.google.com/specimen/Piazzolla
