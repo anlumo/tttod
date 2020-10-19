@@ -6,6 +6,8 @@ mod create_character;
 pub use create_character::CreateCharacter;
 mod player_list;
 pub use player_list::PlayerList;
+mod introduce_characters;
+pub use introduce_characters::IntroduceCharacters;
 
 use futures::{
     sink::SinkExt,
@@ -218,7 +220,17 @@ impl Component for Game {
                                 <CreateCharacter stats=stats player_id=self.player_id players=self.players.clone() set_character=set_character_callback set_ready=set_ready_callback/>
                             }
                         }
-                        GameState::Game => {
+                        GameState::CharacterIntroduction => {
+                            html! {
+                                <IntroduceCharacters player_id=self.player_id players=self.players.clone() set_ready=set_ready_callback/>
+                            }
+                        }
+                        GameState::Room(_idx) => {
+                            html! {
+                                <div/>
+                            }
+                        }
+                        GameState::FinalBattle => {
                             html! {
                                 <div/>
                             }

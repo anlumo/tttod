@@ -95,6 +95,11 @@ impl GameManager {
             log::error!("create_character: {:?}", err);
             return;
         }
+        // character introduction
+        if let Err(err) = instance.introduce_characters().await {
+            log::error!("introduce_characters: {:?}", err);
+            return;
+        }
         // enter the temple
         if let Err(err) = instance.enter_temple().await {
             log::error!("enter_temple: {:?}", err);
@@ -384,16 +389,63 @@ impl GameManager {
         }
         Ok(())
     }
+    async fn introduce_characters(&mut self) -> Result<(), Error> {
+        for (player, _) in self.players.values_mut() {
+            player.ready = false;
+        }
+        self.push_state_all(GameState::CharacterIntroduction)?;
+
+        while !self.players.values().all(|(player, _)| player.ready) {
+            match self.receiver.next().await {
+                None => {
+                    log::error!("Game failed");
+                    return Err(Error::NoPlayers);
+                }
+                Some(InternalMessage::AddClient { player_id, sender }) => {
+                    let all_players: HashMap<_, _> = self
+                        .players
+                        .iter()
+                        .map(|(id, (player, _))| (*id, player.clone()))
+                        .collect();
+                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                        sender.unbounded_send(ServerToClientMessage::PushState {
+                            players: all_players.clone(),
+                            game_state: GameState::CharacterIntroduction,
+                            player_kick_votes: HashMap::new(),
+                        })?;
+                        senders.push(sender);
+                    } else {
+                        sender.unbounded_send(ServerToClientMessage::GameIsOngoing)?;
+                    }
+                }
+                Some(InternalMessage::RemoveClient { player_id }) => {
+                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                        senders.drain_filter(|sender| sender.is_closed());
+                    }
+                }
+                Some(InternalMessage::Message { player_id, message }) => match message {
+                    ClientToServerMessage::ReadyForGame => {
+                        if let Some((player, _)) = self.players.get_mut(&player_id) {
+                            player.ready = true;
+                        }
+                        self.push_state_all(GameState::CharacterIntroduction)?;
+                    }
+                    _ => {}
+                },
+            }
+        }
+        Ok(())
+    }
     async fn enter_temple(&mut self) -> Result<(), Error> {
         for (player, _) in self.players.values_mut() {
             player.ready = false;
         }
-        self.push_state_all(GameState::Game)?;
         let mut rng = rand::thread_rng();
         let mut gms: Vec<Uuid> = self.players.keys().cloned().collect();
         gms.shuffle(&mut rng);
 
-        for gm in gms {
+        for (room, gm) in gms.into_iter().enumerate() {
+            self.push_state_all(GameState::Room(room))?;
             self.send_all(ServerToClientMessage::DeclareGM { player_id: gm })?;
 
             match self.receiver.next().await {
@@ -410,7 +462,7 @@ impl GameManager {
                     if let Some((_, senders)) = self.players.get_mut(&player_id) {
                         sender.unbounded_send(ServerToClientMessage::PushState {
                             players: all_players.clone(),
-                            game_state: GameState::Game,
+                            game_state: GameState::Room(room),
                             player_kick_votes: HashMap::new(),
                         })?;
                         senders.push(sender);

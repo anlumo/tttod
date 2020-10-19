@@ -6,7 +6,9 @@ pub enum GameState {
     PlayerSelection,
     DefineEvil,
     CharacterCreation,
-    Game,
+    CharacterIntroduction,
+    Room(usize),
+    FinalBattle,
 }
 
 impl Default for GameState {

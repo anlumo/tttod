@@ -79,6 +79,10 @@ textarea {
     font-family: 'Piazzolla';
 }
 
+ul {
+    list-style: disc inside;
+}
+
 .tile.is-ancestor {
     background-color: adjust-color($scheme-main, $alpha: -0.2);
     border-radius: 5px;
