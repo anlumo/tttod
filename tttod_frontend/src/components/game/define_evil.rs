@@ -57,9 +57,17 @@ impl Component for DefineEvil {
     fn view(&self) -> Html {
         let ready_callback = self.link.callback(|_| Msg::Ready);
         html! {
-            <ybc::Tile vertical=false ctx=TileCtx::Parent>
-                <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Eight>
-                    <ybc::Title size=HeaderSize::Is1>{"Define the Evil"}</ybc::Title>
+            <ybc::Tile vertical=true ctx=TileCtx::Parent>
+                <ybc::Tile vertical=false ctx=TileCtx::Parent>
+                    <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Eight>
+                        <ybc::Title size=HeaderSize::Is1>{"Define the Evil"}</ybc::Title>
+                    </ybc::Tile>
+                    <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Four>
+                        <ybc::Button loading=self.loading disabled=self.props.questions.iter().any(|(q, a)| a.is_empty()) onclick=ready_callback>{"Look Into the Mirror"}</ybc::Button>
+                        <PlayerList player_id=self.props.player_id players=&self.props.players/>
+                    </ybc::Tile>
+                </ybc::Tile>
+                <ybc::Tile vertical=false ctx=TileCtx::Child>
                     <p class="block">{"Create a powerful malignant force for the heroes to contend with. Secretly answer the following questions. \
                     Answers should be complete self-contained sentences, written in first person from the perspective of the ancient \
                     evil. Click the button on the right when you're done."}</p>
@@ -74,12 +82,6 @@ impl Component for DefineEvil {
                             }
                         })
                     }
-                </ybc::Tile>
-                <ybc::Tile vertical=true ctx=TileCtx::Parent>
-                    <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>
-                        <ybc::Button loading=self.loading disabled=self.props.questions.iter().any(|(q, a)| a.is_empty()) onclick=ready_callback>{"Look Into the Mirror"}</ybc::Button>
-                    </ybc::Tile>
-                    <PlayerList player_id=self.props.player_id players=&self.props.players/>
                 </ybc::Tile>
             </ybc::Tile>
         }

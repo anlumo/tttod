@@ -2,7 +2,6 @@ use crate::{components::Icon, IconName};
 use std::collections::HashMap;
 use tttod_data::Player;
 use uuid::Uuid;
-use ybc::{HeaderSize, TileCtx};
 use yew::prelude::*;
 
 pub struct PlayerList {

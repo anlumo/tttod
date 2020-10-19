@@ -52,9 +52,17 @@ impl Component for IntroduceCharacters {
         let ready_callback = self.link.callback(|_| Msg::Ready);
         let player = self.props.players.get(&self.props.player_id);
         html! {
-            <ybc::Tile vertical=false ctx=TileCtx::Parent>
-                <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Eight>
-                    <ybc::Title size=HeaderSize::Is1>{"Introduce Your Archeologists"}</ybc::Title>
+            <ybc::Tile vertical=true ctx=TileCtx::Parent>
+                <ybc::Tile vertical=false ctx=TileCtx::Parent>
+                    <ybc::Tile ctx=TileCtx::Child size=TileSize::Nine>
+                        <ybc::Title size=HeaderSize::Is1>{"Introduce Your Archeologists"}</ybc::Title>
+                    </ybc::Tile>
+                    <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Three>
+                        <ybc::Button loading=self.loading onclick=ready_callback>{"Enter the Temple"}</ybc::Button>
+                        <PlayerList player_id=self.props.player_id players=&self.props.players/>
+                    </ybc::Tile>
+                </ybc::Tile>
+                <ybc::Tile vertical=false ctx=TileCtx::Child>
                     <p class="block">{"Answer these questions, and add any more details you wish. You may decide \
                     to explore these questions through a short scene between the archeologists outside the temple."}</p>
                     <ul class="block">
@@ -72,12 +80,6 @@ impl Component for IntroduceCharacters {
                             html! { <> </> }
                         }
                     }
-                </ybc::Tile>
-                <ybc::Tile vertical=true ctx=TileCtx::Parent>
-                    <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>
-                        <ybc::Button loading=self.loading onclick=ready_callback>{"Enter the Temple"}</ybc::Button>
-                    </ybc::Tile>
-                    <PlayerList player_id=self.props.player_id players=&self.props.players/>
                 </ybc::Tile>
             </ybc::Tile>
         }

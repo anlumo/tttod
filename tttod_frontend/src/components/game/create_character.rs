@@ -183,9 +183,17 @@ impl Component for CreateCharacter {
             || self.props.stats.artifact_name.is_empty()
             || self.props.stats.artifact_origin.is_empty();
         html! {
-            <ybc::Tile vertical=false ctx=TileCtx::Parent>
-                <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Eight>
-                    <ybc::Title size=HeaderSize::Is1>{"Create Your Archeologist"}</ybc::Title>
+            <ybc::Tile vertical=true ctx=TileCtx::Parent>
+                <ybc::Tile vertical=false ctx=TileCtx::Parent>
+                    <ybc::Tile ctx=TileCtx::Child size=TileSize::Nine>
+                        <ybc::Title size=HeaderSize::Is1>{"Create Your Archeologist"}</ybc::Title>
+                    </ybc::Tile>
+                    <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Three>
+                        <ybc::Button loading=self.loading disabled=invalid_stats onclick=ready_callback>{"Let's Go!"}</ybc::Button>
+                        <PlayerList player_id=self.props.player_id players=&self.props.players/>
+                    </ybc::Tile>
+                </ybc::Tile>
+                <ybc::Tile vertical=false ctx=TileCtx::Child>
                     <div class="block">
                         <div class="field is-horizontal">
                             <div class="field-label is-normal">
@@ -344,12 +352,6 @@ impl Component for CreateCharacter {
                             </div>
                         </div>
                     </div>
-                </ybc::Tile>
-                <ybc::Tile vertical=true ctx=TileCtx::Parent>
-                    <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>
-                        <ybc::Button loading=self.loading disabled=invalid_stats onclick=ready_callback>{"Let's Go!"}</ybc::Button>
-                    </ybc::Tile>
-                    <PlayerList player_id=self.props.player_id players=&self.props.players/>
                 </ybc::Tile>
             </ybc::Tile>
         }

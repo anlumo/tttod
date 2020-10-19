@@ -114,6 +114,17 @@ ul.no-bullet {
     }
 }
 
+.button-with-player-list {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    align-content: flex-start;
+    flex-wrap: wrap;
+    &>div {
+        margin-left: 0.5em;
+    }
+}
+
 tr .name {
     width: 100%;
 }
