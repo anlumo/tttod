@@ -54,15 +54,13 @@ struct GameManager {
 }
 
 impl GameManager {
-    fn send_all(&self, message: ServerToClientMessage) -> Result<(), Error> {
-        for (_, senders) in self.players.values() {
-            for sender in senders {
-                sender.unbounded_send(message.clone())?;
-            }
+    fn send_all(&mut self, message: ServerToClientMessage) -> Result<(), Error> {
+        for (_, senders) in self.players.values_mut() {
+            senders.drain_filter(|sender| sender.unbounded_send(message.clone()).is_err());
         }
         Ok(())
     }
-    fn push_state_all(&self, game_state: GameState) -> Result<(), Error> {
+    fn push_state_all(&mut self, game_state: GameState) -> Result<(), Error> {
         let players: HashMap<_, _> = self
             .players
             .iter()
