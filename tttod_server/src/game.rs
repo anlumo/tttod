@@ -10,6 +10,7 @@ use std::collections::{HashMap, HashSet};
 use tttod_data::{ClientToServerMessage, GameState, Player, ServerToClientMessage};
 use uuid::Uuid;
 
+const MIN_PLAYERS: usize = 3;
 const MAX_PLAYERS: usize = 5;
 const QUESTIONS_PER_PLAYER: usize = 2;
 
@@ -109,7 +110,9 @@ impl GameManager {
     }
 
     async fn wait_for_players(&mut self) -> Result<(), Error> {
-        while self.players.is_empty() || !self.players.values().all(|(player, _)| player.ready) {
+        while self.players.len() < MIN_PLAYERS
+            || !self.players.values().all(|(player, _)| player.ready)
+        {
             match self.receiver.next().await {
                 None => {
                     log::error!("Game failed");
