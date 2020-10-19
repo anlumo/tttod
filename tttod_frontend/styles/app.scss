@@ -83,6 +83,10 @@ ul {
     list-style: disc inside;
 }
 
+ul.no-bullet {
+    list-style: none;
+}
+
 .tile.is-ancestor {
     background-color: adjust-color($scheme-main, $alpha: -0.2);
     border-radius: 5px;
@@ -131,4 +135,8 @@ tr .name {
             margin-right: 0;
         }
     }
+}
+
+.stat-rating {
+    margin-right: 0.3em;
 }

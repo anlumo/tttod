@@ -1,4 +1,4 @@
-use super::PlayerList;
+use super::{CharacterViewer, PlayerList};
 use std::collections::HashMap;
 use tttod_data::Player;
 use uuid::Uuid;
@@ -50,6 +50,7 @@ impl Component for IntroduceCharacters {
 
     fn view(&self) -> Html {
         let ready_callback = self.link.callback(|_| Msg::Ready);
+        let player = self.props.players.get(&self.props.player_id);
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Eight>
@@ -62,6 +63,15 @@ impl Component for IntroduceCharacters {
                         <li>{"What do you think of your team? Have you met before?"}</li>
                         <li>{"How do you feel about the task ahead?"}</li>
                     </ul>
+                    {
+                        if let Some(player) = player {
+                            html! {
+                                <CharacterViewer player=player/>
+                            }
+                        } else {
+                            html! { <> </> }
+                        }
+                    }
                 </ybc::Tile>
                 <ybc::Tile vertical=true ctx=TileCtx::Parent>
                     <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>

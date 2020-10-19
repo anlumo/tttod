@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Player {
@@ -103,6 +104,22 @@ impl Default for Speciality {
     }
 }
 
+impl fmt::Display for Speciality {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Religion => write!(f, "Religion"),
+            Self::Linguistics => write!(f, "Linguistics"),
+            Self::Architecture => write!(f, "Architecture"),
+            Self::WarAndWeaponry => write!(f, "War and Weaponry"),
+            Self::GemsAndMetals => write!(f, "Gems and Metals"),
+            Self::SecretSignsSymbols => write!(f, "Secret Signs / Symbols"),
+            Self::Osteology => write!(f, "Osteology"),
+            Self::DeathAndBurial => write!(f, "Death and Burial"),
+            Self::Other(other) => other.fmt(f),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Reputation {
@@ -120,5 +137,21 @@ pub enum Reputation {
 impl Default for Reputation {
     fn default() -> Self {
         Self::Ambitious
+    }
+}
+
+impl fmt::Display for Reputation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Ambitious => write!(f, "Ambitious"),
+            Self::Genius => write!(f, "Genius"),
+            Self::Ruthless => write!(f, "Ruthless"),
+            Self::Senile => write!(f, "Senile"),
+            Self::MadScientist => write!(f, "Mad Scientist"),
+            Self::BornLeader => write!(f, "Born Leader"),
+            Self::Rulebreaker => write!(f, "Rulebreaker"),
+            Self::Obsessive => write!(f, "Obsessive"),
+            Self::Other(other) => other.fmt(f),
+        }
     }
 }

@@ -8,6 +8,8 @@ mod player_list;
 pub use player_list::PlayerList;
 mod introduce_characters;
 pub use introduce_characters::IntroduceCharacters;
+mod character_viewer;
+pub use character_viewer::CharacterViewer;
 
 use futures::{
     sink::SinkExt,
