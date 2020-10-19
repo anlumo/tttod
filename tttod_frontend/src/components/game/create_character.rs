@@ -142,11 +142,40 @@ impl Component for CreateCharacter {
                             <option>{"other…"}</option>
                         </ybc::Select>
                     </p>
-                    <ybc::Title size=HeaderSize::Is4>{"Stats"}</ybc::Title>
-                    <p>{"Heroic: Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil."}</p>
-                    <p>{"Booksmart: Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge."}</p>
-                    <p>{"Streetwise: Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics."}</p>
-                    <p>{"I'm"}
+                    <ybc::Title size=HeaderSize::Is2>{"Stats"}</ybc::Title>
+                    <ybc::Tile vertical=false>
+                        <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
+                            <ybc::Card classes="attribute-card">
+                                <ybc::CardHeader><p class="card-header-title">{"Heroic"}</p></ybc::CardHeader>
+                                <div class="card-content">
+                                    <ybc::Content>
+                                        {"Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil."}
+                                    </ybc::Content>
+                                </div>
+                            </ybc::Card>
+                        </ybc::Tile>
+                        <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
+                            <ybc::Card classes="attribute-card">
+                                <ybc::CardHeader><p class="card-header-title">{"Booksmart"}</p></ybc::CardHeader>
+                                <div class="card-content">
+                                    <ybc::Content>
+                                        {"Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge."}
+                                    </ybc::Content>
+                                </div>
+                            </ybc::Card>
+                        </ybc::Tile>
+                        <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
+                            <ybc::Card classes="attribute-card">
+                                <ybc::CardHeader><p class="card-header-title">{"Streetwise"}</p></ybc::CardHeader>
+                                <div class="card-content">
+                                    <ybc::Content>
+                                        {"Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics."}
+                                    </ybc::Content>
+                                </div>
+                            </ybc::Card>
+                        </ybc::Tile>
+                    </ybc::Tile>
+                    <p>{"I'm "}
                     <ybc::Select name="attributes" value="311" update=update_attributes_callback loading=self.loading>
                         <option value="311">{"Heroic"}</option>
                         <option value="131">{"Booksmart"}</option>
