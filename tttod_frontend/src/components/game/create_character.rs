@@ -24,6 +24,7 @@ pub enum Msg {
     UpdateName(String),
     UpdateSpeciality(String),
     UpdateReputation(String),
+    UpdateAttributes(String),
     Ready,
 }
 
@@ -58,6 +59,43 @@ impl Component for CreateCharacter {
                 stats.reputation = reputation;
                 self.props.set_character.emit(stats);
             }
+            Msg::UpdateAttributes(code) => {
+                let mut stats = self.props.stats.clone();
+                match code.as_str() {
+                    "311" => {
+                        stats.heroic = 3;
+                        stats.booksmart = 1;
+                        stats.streetwise = 1;
+                    }
+                    "131" => {
+                        stats.heroic = 1;
+                        stats.booksmart = 3;
+                        stats.streetwise = 1;
+                    }
+                    "113" => {
+                        stats.heroic = 1;
+                        stats.booksmart = 1;
+                        stats.streetwise = 3;
+                    }
+                    "221" => {
+                        stats.heroic = 2;
+                        stats.booksmart = 2;
+                        stats.streetwise = 1;
+                    }
+                    "212" => {
+                        stats.heroic = 2;
+                        stats.booksmart = 1;
+                        stats.streetwise = 2;
+                    }
+                    "122" => {
+                        stats.heroic = 1;
+                        stats.booksmart = 2;
+                        stats.streetwise = 2;
+                    }
+                    _ => return false,
+                }
+                self.props.set_character.emit(stats);
+            }
         }
         false
     }
@@ -72,6 +110,7 @@ impl Component for CreateCharacter {
         let update_name_callback = self.link.callback(Msg::UpdateName);
         let update_speciality_callback = self.link.callback(Msg::UpdateSpeciality);
         let update_reputation_callback = self.link.callback(Msg::UpdateReputation);
+        let update_attributes_callback = self.link.callback(Msg::UpdateAttributes);
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Eight>
@@ -107,6 +146,16 @@ impl Component for CreateCharacter {
                     <p>{"Heroic: Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil."}</p>
                     <p>{"Booksmart: Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge."}</p>
                     <p>{"Streetwise: Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics."}</p>
+                    <p>{"I'm"}
+                    <ybc::Select name="attributes" value="311" update=update_attributes_callback loading=self.loading>
+                        <option value="311">{"Heroic"}</option>
+                        <option value="131">{"Booksmart"}</option>
+                        <option value="113">{"Streetwise"}</option>
+                        <option value="221">{"Heroic and Booksmart"}</option>
+                        <option value="212">{"Heroic and Streetwise"}</option>
+                        <option value="122">{"Booksmart and Streetwise"}</option>
+                    </ybc::Select>
+                    </p>
                 </ybc::Tile>
                 <ybc::Tile vertical=true ctx=TileCtx::Parent>
                     <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>
