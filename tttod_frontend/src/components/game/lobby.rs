@@ -84,6 +84,10 @@ impl Component for Lobby {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if let Some(player) = props.players.get(&props.player_id) {
+            self.loading = player.ready;
+            self.player_name = player.name.clone();
+        }
         self.props = props;
         true
     }
