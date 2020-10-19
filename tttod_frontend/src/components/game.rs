@@ -24,7 +24,6 @@ pub struct Game {
     state: GameState,
     player_id: Uuid,
     websocket: Option<(WsMeta, Rc<RefCell<SplitSink<WsStream, WsMessage>>>)>,
-    game_state: GameState,
     players: HashMap<Uuid, Player>,
     player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
 }
@@ -72,7 +71,6 @@ impl Component for Game {
             state: GameState::PlayerSelection,
             player_id,
             websocket: None,
-            game_state: GameState::PlayerSelection,
             players: HashMap::new(),
             player_kick_votes: HashMap::new(),
         };
@@ -109,7 +107,7 @@ impl Component for Game {
                         game_state,
                         player_kick_votes,
                     } => {
-                        self.game_state = game_state;
+                        self.state = game_state;
                         self.players = players;
                         self.player_kick_votes = player_kick_votes;
                         true
@@ -162,6 +160,7 @@ impl Component for Game {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
                 if self.websocket.is_some() {
+                    log::debug!("state = {:?}", self.state);
                     match self.state {
                         GameState::PlayerSelection => {
                             html! {
