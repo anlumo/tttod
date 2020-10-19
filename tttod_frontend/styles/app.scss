@@ -76,7 +76,7 @@ button {
     font-family: 'Adventure';
 }
 
-.tile.top-level {
+.tile.is-ancestor {
     background-color: adjust-color($scheme-main, $alpha: -0.2);
     border-radius: 5px;
     padding: 1em;
@@ -85,4 +85,8 @@ button {
 .navbar {
     font-family: 'Adventure';
     margin-bottom: 1em;
+}
+
+tr .name {
+    width: 100%;
 }

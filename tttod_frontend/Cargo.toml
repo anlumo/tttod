@@ -28,10 +28,11 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 ws_stream_wasm = "0.6"
 wasm-bindgen-futures = "0.4"
+futures = "0.3"
 
 [dependencies.web-sys]
 version = "0.3"
-features = ["console", "HtmlElement", "KeyboardEvent"]
+features = ["console", "HtmlElement", "KeyboardEvent", "Window"]
 
 [target."cfg(debug_assertions)".dependencies]
 console_error_panic_hook = "0.1"

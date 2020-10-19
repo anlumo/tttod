@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "tttod_frontend"
+		},
+		{
+			"path": "tttod_data"
+		},
+		{
+			"path": "tttod_server"
+		}
+	],
+	"settings": {}
+}

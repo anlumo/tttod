@@ -1,4 +1,4 @@
-use ybc::{HeaderSize, TileSize};
+use ybc::{HeaderSize, TileCtx};
 use yew::prelude::*;
 
 pub struct Introduction;
@@ -20,7 +20,7 @@ impl Component for Introduction {
 
     fn view(&self) -> Html {
         html! {
-            <ybc::Tile vertical=true size=TileSize::Eight>
+            <ybc::Tile vertical=true ctx=TileCtx::Child>
                 <ybc::Title size=HeaderSize::Is1>{"To the Temple of Doom!"}</ybc::Title>
                 <ybc::Title size=HeaderSize::Is3>{"To Defeat the Ancient Evil!"}</ybc::Title>
                 <ybc::Section>

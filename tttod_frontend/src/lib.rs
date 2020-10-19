@@ -1,4 +1,4 @@
-#![recursion_limit = "256"]
+#![recursion_limit = "1024"]
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 use yew::prelude::*;

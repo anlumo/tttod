@@ -6,12 +6,12 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "cmd", rename_all = "snake_case")]
 pub enum ClientToServerMessage {
-    SetPlayerName(String),
+    SetPlayerName { name: String },
     ReadyForGame,
-    VoteKickPlayer(Uuid),
-    RevertVoteKickPlayer(Uuid),
-    Answers(Vec<String>),
-    SetCharacter(PlayerStats),
+    VoteKickPlayer { player_id: Uuid },
+    RevertVoteKickPlayer { player_id: Uuid },
+    Answers { answers: Vec<String> },
+    SetCharacter { stats: PlayerStats },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -24,8 +24,12 @@ pub enum ServerToClientMessage {
         game_state: GameState,
         player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
     },
-    Questions(Vec<(String, Option<String>)>),
-    DeclareGM(Uuid),
+    Questions {
+        questions: Vec<(String, Option<String>)>,
+    },
+    DeclareGM {
+        player_id: Uuid,
+    },
     EndGame,
 }
 

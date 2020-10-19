@@ -1,25 +1,32 @@
 mod lobby;
 pub use lobby::Lobby;
 
+use futures::{
+    sink::SinkExt,
+    stream::{SplitSink, StreamExt},
+};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
+use tttod_data::{ClientToServerMessage, GameState, Player, ServerToClientMessage};
 use uuid::Uuid;
+use wasm_bindgen::{closure::Closure, JsCast};
 use wasm_bindgen_futures::spawn_local;
-use ws_stream_wasm::WsMeta;
+use ws_stream_wasm::{WsMessage, WsMeta, WsStream};
+use ybc::{HeaderSize, TileCtx};
 use yew::prelude::*;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GameState {
-    PlayerSelection,
-    QuestionsAndAnswers,
-    CharacterCreation,
-    Game,
-}
 
 pub struct Game {
     link: ComponentLink<Self>,
     props: Props,
     state: GameState,
     player_id: Uuid,
-    websocket: Option<WsMeta>,
+    websocket: Option<(WsMeta, Rc<RefCell<SplitSink<WsStream, WsMessage>>>)>,
+    game_state: GameState,
+    players: HashMap<Uuid, Player>,
+    player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -29,7 +36,12 @@ pub struct Props {
 
 pub enum Msg {
     SetPlayerName(String),
-    SetWebsocket(WsMeta),
+    VoteKick(Uuid),
+    PlayerReady,
+    SetWebsocket(WsMeta, SplitSink<WsStream, WsMessage>),
+    WebsocketClosed,
+    ConnectWebsocket,
+    ReceivedMessage(ServerToClientMessage),
 }
 
 fn local_storage() -> web_sys::Storage {
@@ -54,43 +66,74 @@ impl Component for Game {
                 .unwrap();
             player_id
         };
-        let inner_link = link.clone();
-        let game_name = props.game_name.clone();
-        spawn_local(async move {
-            let base = {
-                let host = "localhost:8081"; //web_sys::window().unwrap().location().host().unwrap();
-                if web_sys::window().unwrap().location().protocol().unwrap() == "https:" {
-                    format!("wss://{}", host)
-                } else {
-                    format!("ws://{}", host)
-                }
-            };
-            if let Ok((meta, _)) = WsMeta::connect(
-                &format!("{}/api/{}/{}/ws", base, game_name, player_id),
-                None,
-            )
-            .await
-            {
-                inner_link.send_message(Msg::SetWebsocket(meta));
-            }
-        });
-        Self {
+        let instance = Self {
             link,
             props,
             state: GameState::PlayerSelection,
             player_id,
             websocket: None,
-        }
+            game_state: GameState::PlayerSelection,
+            players: HashMap::new(),
+            player_kick_votes: HashMap::new(),
+        };
+        instance.connect_websocket();
+        instance
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::SetPlayerName(name) => {
-                // TODO
+                self.send_message(ClientToServerMessage::SetPlayerName { name });
+                false
+            }
+            Msg::PlayerReady => {
+                self.send_message(ClientToServerMessage::ReadyForGame);
+                false
+            }
+            Msg::VoteKick(player_id) => {
+                self.send_message(ClientToServerMessage::VoteKickPlayer { player_id });
+                false
+            }
+            Msg::SetWebsocket(meta, sink) => {
+                self.websocket = Some((meta, Rc::new(RefCell::new(sink))));
                 true
             }
-            Msg::SetWebsocket(meta) => {
-                self.websocket = Some(meta);
+            Msg::ReceivedMessage(message) => {
+                log::debug!("received message {:?}", message);
+                match message {
+                    ServerToClientMessage::GameIsFull => false,
+                    ServerToClientMessage::GameIsOngoing => false,
+                    ServerToClientMessage::EndGame => false,
+                    ServerToClientMessage::PushState {
+                        players,
+                        game_state,
+                        player_kick_votes,
+                    } => {
+                        self.game_state = game_state;
+                        self.players = players;
+                        self.player_kick_votes = player_kick_votes;
+                        true
+                    }
+                    ServerToClientMessage::DeclareGM { player_id: gm } => false,
+                    ServerToClientMessage::Questions { questions } => false,
+                }
+            }
+            Msg::WebsocketClosed => {
+                let link = self.link.clone();
+                let closure = Closure::once_into_js(move || {
+                    link.send_message(Msg::ConnectWebsocket);
+                });
+                web_sys::window()
+                    .unwrap()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        closure.as_ref().unchecked_ref(),
+                        1000,
+                    )
+                    .unwrap();
+                false
+            }
+            Msg::ConnectWebsocket => {
+                self.connect_websocket();
                 false
             }
         }
@@ -101,41 +144,110 @@ impl Component for Game {
         true
     }
 
-    fn rendered(&mut self, first_render: bool) {
-        if first_render {
-            // TODO
+    fn destroy(&mut self) {
+        if let Some((meta, _)) = self.websocket.take() {
+            spawn_local(async move {
+                if let Err(err) = meta.close().await {
+                    log::error!("Failed disconnecting websocket: {:?}", err);
+                }
+            });
         }
     }
 
     fn view(&self) -> Html {
         let set_name_callback = self.link.callback(Msg::SetPlayerName);
+        let set_ready_callback = self.link.callback(|_| Msg::PlayerReady);
+        let vote_kick_callback = self.link.callback(Msg::VoteKick);
         html! {
-            <ybc::Tile classes="top-level" vertical=false>
+            <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
-                match self.state {
-                    GameState::PlayerSelection => {
-                        html! {
-                            <Lobby set_name=set_name_callback/>
+                if self.websocket.is_some() {
+                    match self.state {
+                        GameState::PlayerSelection => {
+                            html! {
+                                <Lobby set_name=set_name_callback set_ready=set_ready_callback vote_kick=vote_kick_callback player_id=self.player_id players=self.players.clone() player_kick_votes=self.player_kick_votes.clone()/>
+                            }
+                        }
+                        GameState::DefineEvil => {
+                            html! {
+                                <div/>
+                            }
+                        }
+                        GameState::CharacterCreation => {
+                            html! {
+                                <div/>
+                            }
+                        }
+                        GameState::Game => {
+                            html! {
+                                <div/>
+                            }
                         }
                     }
-                    GameState::QuestionsAndAnswers => {
-                        html! {
-                            <div/>
-                        }
-                    }
-                    GameState::CharacterCreation => {
-                        html! {
-                            <div/>
-                        }
-                    }
-                    GameState::Game => {
-                        html! {
-                            <div/>
-                        }
+                } else {
+                    html! {
+                        <ybc::Title size=HeaderSize::Is4>{"Connecting to server…"}</ybc::Title>
                     }
                 }
             }
             </ybc::Tile>
+        }
+    }
+}
+
+impl Game {
+    fn connect_websocket(&self) {
+        let game_name = self.props.game_name.clone();
+        let link = self.link.clone();
+        let player_id = self.player_id;
+        spawn_local(async move {
+            let base = {
+                let host = "localhost:8081"; //web_sys::window().unwrap().location().host().unwrap();
+                if web_sys::window().unwrap().location().protocol().unwrap() == "https:" {
+                    format!("wss://{}", host)
+                } else {
+                    format!("ws://{}", host)
+                }
+            };
+            if let Ok((meta, stream)) = WsMeta::connect(
+                &format!("{}/api/{}/{}/ws", base, game_name, player_id),
+                None,
+            )
+            .await
+            {
+                let (sink, mut stream) = stream.split();
+                link.send_message(Msg::SetWebsocket(meta, sink));
+                while let Some(message) = stream.next().await {
+                    if let WsMessage::Text(text) = message {
+                        match serde_json::from_str(&text) {
+                            Err(err) => {
+                                log::error!("Failed parsing json message: {:?}", err);
+                            }
+                            Ok(message) => {
+                                link.send_message(Msg::ReceivedMessage(message));
+                            }
+                        }
+                    } else {
+                        log::error!("Unkonwn binary message received");
+                    }
+                }
+                log::warn!("Websocket connection lost!");
+                link.send_message(Msg::WebsocketClosed);
+            }
+        });
+    }
+    fn send_message(&self, message: ClientToServerMessage) {
+        if let Some((_, sender)) = &self.websocket {
+            let sender = Rc::downgrade(sender);
+            spawn_local(async move {
+                if let Some(sender) = sender.upgrade() {
+                    let json = serde_json::to_string(&message).unwrap();
+                    log::debug!("Send message {}", json);
+                    if let Err(err) = sender.borrow_mut().send(WsMessage::Text(json)).await {
+                        log::error!("Failed sending message: {:?}", err);
+                    }
+                }
+            });
         }
     }
 }

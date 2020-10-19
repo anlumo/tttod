@@ -148,13 +148,15 @@ impl GameManager {
                         }
                         self.push_state_all(GameState::PlayerSelection)?;
                     }
-                    ClientToServerMessage::SetPlayerName(name) => {
+                    ClientToServerMessage::SetPlayerName { name } => {
                         if let Some((player, _)) = self.players.get_mut(&player_id) {
                             player.name = name;
                         }
                         self.push_state_all(GameState::PlayerSelection)?;
                     }
-                    ClientToServerMessage::VoteKickPlayer(other_player_id) => {
+                    ClientToServerMessage::VoteKickPlayer {
+                        player_id: other_player_id,
+                    } => {
                         if player_id != other_player_id {
                             let votes = self.player_kick_votes.entry(other_player_id).or_default();
                             votes.insert(player_id);
@@ -184,7 +186,9 @@ impl GameManager {
                             self.push_state_all(GameState::PlayerSelection)?;
                         }
                     }
-                    ClientToServerMessage::RevertVoteKickPlayer(other_player_id) => {
+                    ClientToServerMessage::RevertVoteKickPlayer {
+                        player_id: other_player_id,
+                    } => {
                         if let Some(votes) = self.player_kick_votes.get_mut(&other_player_id) {
                             votes.remove(&player_id);
                         }
@@ -222,7 +226,9 @@ impl GameManager {
                     .map(|(question, _)| (format!("{}", question), None))
                     .collect();
                 for sender in senders {
-                    sender.unbounded_send(ServerToClientMessage::Questions(payload.clone()))?;
+                    sender.unbounded_send(ServerToClientMessage::Questions {
+                        questions: payload.clone(),
+                    })?;
                 }
             }
         }
@@ -249,7 +255,9 @@ impl GameManager {
                                 .iter()
                                 .map(|(question, answer)| (format!("{}", question), answer.clone()))
                                 .collect();
-                            sender.unbounded_send(ServerToClientMessage::Questions(payload))?;
+                            sender.unbounded_send(ServerToClientMessage::Questions {
+                                questions: payload,
+                            })?;
                         }
                         senders.push(sender);
                     } else {
@@ -262,7 +270,7 @@ impl GameManager {
                     }
                 }
                 Some(InternalMessage::Message { player_id, message }) => match message {
-                    ClientToServerMessage::Answers(answers) => {
+                    ClientToServerMessage::Answers { answers } => {
                         if let Some((player, _)) = self.players.get_mut(&player_id) {
                             if !player.ready {
                                 if let Some(questions) = player_questions.get_mut(&player_id) {
@@ -327,7 +335,7 @@ impl GameManager {
                     }
                 }
                 Some(InternalMessage::Message { player_id, message }) => match message {
-                    ClientToServerMessage::SetCharacter(stats) => {
+                    ClientToServerMessage::SetCharacter { stats } => {
                         if let Some((player, _)) = self.players.get_mut(&player_id) {
                             if !player.ready
                                 && stats.heroic > 0
@@ -362,7 +370,7 @@ impl GameManager {
         gms.shuffle(&mut rng);
 
         for gm in gms {
-            self.send_all(ServerToClientMessage::DeclareGM(gm))?;
+            self.send_all(ServerToClientMessage::DeclareGM { player_id: gm })?;
 
             match self.receiver.next().await {
                 None => {

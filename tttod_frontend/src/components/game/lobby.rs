@@ -2,9 +2,12 @@ use crate::{
     components::{Icon, Introduction},
     IconName,
 };
+use std::collections::{HashMap, HashSet};
+use tttod_data::Player;
+use uuid::Uuid;
 use wasm_bindgen::{closure::Closure, JsCast};
 use web_sys::HtmlElement;
-use ybc::TileSize;
+use ybc::{HeaderSize, TileCtx, TileSize};
 use yew::prelude::*;
 
 pub struct Lobby {
@@ -19,10 +22,16 @@ pub struct Lobby {
 #[derive(Debug, Clone, Properties)]
 pub struct Props {
     pub set_name: Callback<String>,
+    pub set_ready: Callback<()>,
+    pub vote_kick: Callback<Uuid>,
+    pub player_id: Uuid,
+    pub players: HashMap<Uuid, Player>,
+    pub player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
 }
 
 pub enum Msg {
     UpdateName(String),
+    VoteKick(Uuid),
     EnterGame,
 }
 
@@ -50,24 +59,33 @@ impl Component for Lobby {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateName(name) => {
-                self.player_name = name;
-                true
+                if !self.loading {
+                    self.player_name = name;
+                    self.props.set_name.emit(self.player_name.clone());
+                    true
+                } else {
+                    false
+                }
             }
             Msg::EnterGame => {
                 if !self.loading {
-                    self.props.set_name.emit(self.player_name.clone());
+                    self.props.set_ready.emit(());
                     self.loading = true;
                     true
                 } else {
                     false
                 }
             }
+            Msg::VoteKick(id) => {
+                self.props.vote_kick.emit(id);
+                false
+            }
         }
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.props = props;
-        false
+        true
     }
 
     fn rendered(&mut self, first_render: bool) {
@@ -85,22 +103,74 @@ impl Component for Lobby {
         let game_callback = self.link.callback(|_| Msg::EnterGame);
         let update_name_callback = self.link.callback(Msg::UpdateName);
         html! {
-            <ybc::Tile classes="top-level" vertical=false>
-                <Introduction/>
-                <ybc::Tile vertical=true size=TileSize::Four>
-                    <ybc::Section>
-                        <ybc::Field classes="control has-icons-left">
-                           <ybc::Input name="game" update=update_name_callback value=self.player_name.clone() placeholder="Player name" rounded=false ref=self.input_ref.clone()/>
-                           <span class="icon is-small is-left">
-                                <Icon name=IconName::User/>
-                            </span>
-                       </ybc::Field>
-                        <ybc::Field>
-                            <ybc::Button loading=self.loading disabled=self.player_name.is_empty() onclick=game_callback>{"Enter the Temple"}</ybc::Button>
-                        </ybc::Field>
-                    </ybc::Section>
+            <>
+                <ybc::Tile vertical=true size=TileSize::Eight ctx=TileCtx::Parent>
+                    <Introduction/>
                 </ybc::Tile>
-            </ybc::Tile>
+                <ybc::Tile vertical=true ctx=TileCtx::Parent>
+                    <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>
+                        <ybc::Section>
+                            <ybc::Field classes="control has-icons-left">
+                            <ybc::Input disabled=self.loading name="game" update=update_name_callback value=self.player_name.clone() placeholder="Player name" rounded=false ref=self.input_ref.clone()/>
+                            <span class="icon is-small is-left">
+                                    <Icon name=IconName::User/>
+                                </span>
+                        </ybc::Field>
+                            <ybc::Field>
+                                <ybc::Button loading=self.loading disabled=self.player_name.is_empty() onclick=game_callback>{"Enter the Temple"}</ybc::Button>
+                            </ybc::Field>
+                        </ybc::Section>
+                    </ybc::Tile>
+                    <ybc::Tile classes="box" ctx=TileCtx::Child>
+                        <ybc::Title size=HeaderSize::Is4>{"Players"}</ybc::Title>
+                        <ybc::Table striped=true narrow=true fullwidth=true>
+                            <thead>
+                                <tr><th class="name">{"Name"}</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                            {
+                                for self.props.players.iter().map(move |(player_id, player)| {
+                                    let player_id = *player_id;
+                                    let onclick_callback = self.link.callback(move |_| Msg::VoteKick(player_id));
+                                    if player.name.is_empty() {
+                                        html! {
+                                            <tr><td class="name"><em>{"unknown"}</em></td><td>
+                                            {
+                                                if let Some(kick_votes) = self.props.player_kick_votes.get(&player_id) {
+                                                    (0..kick_votes.len()).map(|_| html! {
+                                                        <Icon name=IconName::SkullCrossbones/>
+                                                    }).collect()
+                                                } else {
+                                                    html! { <></> }
+                                                }
+                                            }
+                                            {
+                                                if player_id != self.props.player_id {
+                                                    html! {
+                                                        <ybc::Button classes="is-danger is-rounded is-light" onclick=onclick_callback><Icon name=IconName::UserSlash/></ybc::Button>
+                                                    }
+                                                } else {
+                                                    html! { <></> }
+                                                }
+                                            }
+                                            </td></tr>
+                                        }
+                                    } else if player_id != self.props.player_id {
+                                        html! {
+                                            <tr><td class="name">{&player.name}</td><td><ybc::Button classes="is-danger is-rounded is-light" onclick=onclick_callback><Icon name=IconName::UserSlash/></ybc::Button></td></tr>
+                                        }
+                                    } else {
+                                        html! {
+                                            <tr><td class="name">{&player.name}</td><td></td></tr>
+                                        }
+                                    }
+                                })
+                            }
+                            </tbody>
+                        </ybc::Table>
+                    </ybc::Tile>
+                </ybc::Tile>
+            </>
         }
     }
 }

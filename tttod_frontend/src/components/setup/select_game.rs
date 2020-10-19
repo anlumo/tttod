@@ -4,7 +4,7 @@ use crate::{
 };
 use wasm_bindgen::{closure::Closure, JsCast};
 use web_sys::HtmlElement;
-use ybc::TileSize;
+use ybc::{TileCtx, TileSize};
 use yew::prelude::*;
 use yew_router::{
     agent::RouteRequest::ChangeRoute,
@@ -79,20 +79,24 @@ impl Component for SelectGame {
         let game_callback = self.link.callback(|_| Msg::EnterGame);
         let update_name_callback = self.link.callback(Msg::UpdateName);
         html! {
-            <ybc::Tile classes="top-level" vertical=false>
-                <Introduction/>
-                <ybc::Tile vertical=true size=TileSize::Four>
-                    <ybc::Section>
-                        <ybc::Field classes="control has-icons-left">
-                           <ybc::Input name="game" update=update_name_callback value=self.game_name.clone() placeholder="Game name" rounded=false ref=self.input_ref.clone()/>
-                           <span class="icon is-small is-left">
-                               <Icon name=IconName::Gopuram/>
-                            </span>
-                        </ybc::Field>
-                        <ybc::Field>
-                            <ybc::Button disabled=self.game_name.is_empty() onclick=game_callback>{"Prepare the Expedition"}</ybc::Button>
-                        </ybc::Field>
-                    </ybc::Section>
+            <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
+                <ybc::Tile vertical=false ctx=TileCtx::Parent size=TileSize::Eight>
+                    <Introduction/>
+                </ybc::Tile>
+                <ybc::Tile vertical=false ctx=TileCtx::Parent>
+                    <ybc::Tile vertical=true ctx=TileCtx::Child>
+                        <ybc::Section>
+                            <ybc::Field classes="control has-icons-left">
+                            <ybc::Input name="game" update=update_name_callback value=self.game_name.clone() placeholder="Game name" rounded=false ref=self.input_ref.clone()/>
+                            <span class="icon is-small is-left">
+                                <Icon name=IconName::Gopuram/>
+                                </span>
+                            </ybc::Field>
+                            <ybc::Field>
+                                <ybc::Button disabled=self.game_name.is_empty() onclick=game_callback>{"Prepare the Expedition"}</ybc::Button>
+                            </ybc::Field>
+                        </ybc::Section>
+                    </ybc::Tile>
                 </ybc::Tile>
             </ybc::Tile>
         }
