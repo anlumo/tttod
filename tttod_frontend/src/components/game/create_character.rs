@@ -1,8 +1,8 @@
 use crate::{components::Icon, IconName};
 use std::collections::HashMap;
-use tttod_data::{Player, PlayerStats};
+use tttod_data::{ArtifactBoon, Player, PlayerStats, Reputation, Speciality};
 use uuid::Uuid;
-use ybc::{HeaderSize, Size, TileCtx, TileSize};
+use ybc::{HeaderSize, TileCtx, TileSize};
 use yew::prelude::*;
 
 pub struct CreateCharacter {
@@ -23,8 +23,13 @@ pub struct Props {
 pub enum Msg {
     UpdateName(String),
     UpdateSpeciality(String),
+    UpdateOtherSpeciality(String),
     UpdateReputation(String),
+    UpdateOtherReputation(String),
     UpdateAttributes(String),
+    UpdateArtifactName(String),
+    UpdateArtifactOrigin(String),
+    UpdateArtifactBoon(ArtifactBoon),
     Ready,
 }
 
@@ -51,12 +56,42 @@ impl Component for CreateCharacter {
             }
             Msg::UpdateSpeciality(speciality) => {
                 let mut stats = self.props.stats.clone();
-                stats.speciality = speciality;
+                stats.speciality = match speciality.as_str() {
+                    "Religion" => Speciality::Religion,
+                    "Linguistics" => Speciality::Linguistics,
+                    "Architecture" => Speciality::Architecture,
+                    "War and Weaponry" => Speciality::WarAndWeaponry,
+                    "Gems and Metals" => Speciality::GemsAndMetals,
+                    "Secret Signs / Symbols" => Speciality::SecretSignsSymbols,
+                    "Osteology" => Speciality::Osteology,
+                    "Death and Burial" => Speciality::DeathAndBurial,
+                    _ => Speciality::Other("".to_owned()),
+                };
+                self.props.set_character.emit(stats);
+            }
+            Msg::UpdateOtherSpeciality(speciality) => {
+                let mut stats = self.props.stats.clone();
+                stats.speciality = Speciality::Other(speciality);
                 self.props.set_character.emit(stats);
             }
             Msg::UpdateReputation(reputation) => {
                 let mut stats = self.props.stats.clone();
-                stats.reputation = reputation;
+                stats.reputation = match reputation.as_str() {
+                    "Ambitious" => Reputation::Ambitious,
+                    "Genius" => Reputation::Genius,
+                    "Ruthless" => Reputation::Ruthless,
+                    "Senile" => Reputation::Senile,
+                    "Mad Scientist" => Reputation::MadScientist,
+                    "Born Leader" => Reputation::BornLeader,
+                    "Rulebreaker" => Reputation::Rulebreaker,
+                    "Obsessive" => Reputation::Obsessive,
+                    _ => Reputation::Other("".to_owned()),
+                };
+                self.props.set_character.emit(stats);
+            }
+            Msg::UpdateOtherReputation(reputation) => {
+                let mut stats = self.props.stats.clone();
+                stats.reputation = Reputation::Other(reputation);
                 self.props.set_character.emit(stats);
             }
             Msg::UpdateAttributes(code) => {
@@ -96,6 +131,21 @@ impl Component for CreateCharacter {
                 }
                 self.props.set_character.emit(stats);
             }
+            Msg::UpdateArtifactName(name) => {
+                let mut stats = self.props.stats.clone();
+                stats.artifact_name = name;
+                self.props.set_character.emit(stats);
+            }
+            Msg::UpdateArtifactOrigin(origin) => {
+                let mut stats = self.props.stats.clone();
+                stats.artifact_origin = origin;
+                self.props.set_character.emit(stats);
+            }
+            Msg::UpdateArtifactBoon(boon) => {
+                let mut stats = self.props.stats.clone();
+                stats.artifact_boon = boon;
+                self.props.set_character.emit(stats);
+            }
         }
         false
     }
@@ -109,40 +159,127 @@ impl Component for CreateCharacter {
         let ready_callback = self.link.callback(|_| Msg::Ready);
         let update_name_callback = self.link.callback(Msg::UpdateName);
         let update_speciality_callback = self.link.callback(Msg::UpdateSpeciality);
+        let update_other_speciality_callback = self.link.callback(Msg::UpdateOtherSpeciality);
         let update_reputation_callback = self.link.callback(Msg::UpdateReputation);
+        let update_other_reputation_callback = self.link.callback(Msg::UpdateOtherReputation);
         let update_attributes_callback = self.link.callback(Msg::UpdateAttributes);
+        let update_artifact_name_callback = self.link.callback(Msg::UpdateArtifactName);
+        let update_artifact_origin_callback = self.link.callback(Msg::UpdateArtifactOrigin);
+        let update_artifact_boon_callback = self.link.callback(|key: String| {
+            Msg::UpdateArtifactBoon(match key.as_str() {
+                "1" => ArtifactBoon::RollWithPlusTwo,
+                "2" => ArtifactBoon::SuccessOnFive,
+                "3" => ArtifactBoon::SuccessOnDoubles,
+                _ => ArtifactBoon::Reroll,
+            })
+        });
+        let stats = 100 * (self.props.stats.heroic as usize)
+            + 10 * (self.props.stats.booksmart as usize)
+            + (self.props.stats.streetwise as usize);
+        let speciality = &self.props.stats.speciality;
+        let reputation = &self.props.stats.reputation;
+        let invalid_stats = self.props.stats.name.is_empty()
+            || self.props.stats.artifact_name.is_empty()
+            || self.props.stats.artifact_origin.is_empty();
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Eight>
                     <ybc::Title size=HeaderSize::Is1>{"Create Your Archeologist"}</ybc::Title>
-                    <p class="block">{"Dr. "}<ybc::Input disabled=self.loading name="character_name" update=update_name_callback value=self.props.stats.name.clone() placeholder="Archeologist name"/>{" (PhD)"}</p>
-                    <p class="block">{"Speciality: "}
-                        <ybc::Select name="speciality" value=self.props.stats.speciality.clone() update=update_speciality_callback loading=self.loading>
-                            <option>{"Religion"}</option>
-                            <option>{"Linguistics"}</option>
-                            <option>{"Architecture"}</option>
-                            <option>{"War and Weaponry"}</option>
-                            <option>{"Gems and Metals"}</option>
-                            <option>{"Secret Signs / Symbols"}</option>
-                            <option>{"Osteology"}</option>
-                            <option>{"Death and Burial"}</option>
-                            <option>{"other…"}</option>
-                        </ybc::Select>
-                    </p>
-                    <p class="block">{"Reputation: "}
-                        <ybc::Select name="reputation" value=self.props.stats.reputation.clone() update=update_reputation_callback loading=self.loading>
-                            <option>{"Ambitious"}</option>
-                            <option>{"Genius"}</option>
-                            <option>{"Ruthless"}</option>
-                            <option>{"Senile"}</option>
-                            <option>{"Mad Scientist"}</option>
-                            <option>{"Born Leader"}</option>
-                            <option>{"Rulebreaker"}</option>
-                            <option>{"Obsessive"}</option>
-                            <option>{"other…"}</option>
-                        </ybc::Select>
-                    </p>
-                    <ybc::Title size=HeaderSize::Is2>{"Stats"}</ybc::Title>
+                    <div class="block">
+                        <div class="field is-horizontal">
+                            <div class="field-label is-normal">
+                                <label class="label">{"Name:"}</label>
+                            </div>
+                            <div class="field-body">
+                                <div class="field">
+                                    <p class="control character-name-input">
+                                        <div>{"Dr. "}</div><ybc::Input disabled=self.loading name="character_name" update=update_name_callback value=self.props.stats.name.clone() placeholder="Archeologist name"/><div>{" (PhD)"}</div>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field is-horizontal">
+                            <div class="field-label is-normal">
+                                <label class="label">{"Speciality:"}</label>
+                            </div>
+                            <div class="field-body">
+                                <div class="field">
+                                    <p class="control speciality">
+                                        <ybc::Select name="speciality" value="" update=update_speciality_callback loading=self.loading>
+                                            <option selected={speciality == &Speciality::Religion}>{"Religion"}</option>
+                                            <option selected={speciality == &Speciality::Linguistics}>{"Linguistics"}</option>
+                                            <option selected={speciality == &Speciality::Architecture}>{"Architecture"}</option>
+                                            <option selected={speciality == &Speciality::WarAndWeaponry}>{"War and Weaponry"}</option>
+                                            <option selected={speciality == &Speciality::GemsAndMetals}>{"Gems and Metals"}</option>
+                                            <option selected={speciality == &Speciality::SecretSignsSymbols}>{"Secret Signs / Symbols"}</option>
+                                            <option selected={speciality == &Speciality::Osteology}>{"Osteology"}</option>
+                                            <option selected={speciality == &Speciality::DeathAndBurial}>{"Death and Burial"}</option>
+                                            <option selected={matches!(speciality, Speciality::Other(_))}>{"other…"}</option>
+                                        </ybc::Select>
+                                        {
+                                            if let Speciality::Other(speciality) = speciality {
+                                                html! {
+                                                    <ybc::Input disabled=self.loading name="other_speciality" update=update_other_speciality_callback value=speciality.clone() placeholder="which one?"/>
+                                                }
+                                            } else {
+                                                html! { <></> }
+                                            }
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field is-horizontal">
+                            <div class="field-label is-normal">
+                                <label class="label">{"Reputation: "}</label>
+                            </div>
+                            <div class="field-body">
+                                <div class="field">
+                                    <p class="control reputation">
+                                        <ybc::Select name="reputation" value="" update=update_reputation_callback loading=self.loading>
+                                            <option selected={reputation == &Reputation::Ambitious}>{"Ambitious"}</option>
+                                            <option selected={reputation == &Reputation::Genius}>{"Genius"}</option>
+                                            <option selected={reputation == &Reputation::Ruthless}>{"Ruthless"}</option>
+                                            <option selected={reputation == &Reputation::Senile}>{"Senile"}</option>
+                                            <option selected={reputation == &Reputation::MadScientist}>{"Mad Scientist"}</option>
+                                            <option selected={reputation == &Reputation::BornLeader}>{"Born Leader"}</option>
+                                            <option selected={reputation == &Reputation::Rulebreaker}>{"Rulebreaker"}</option>
+                                            <option selected={reputation == &Reputation::Obsessive}>{"Obsessive"}</option>
+                                            <option selected={matches!(reputation, Reputation::Other(_))}>{"other…"}</option>
+                                        </ybc::Select>
+                                        {
+                                            if let Reputation::Other(reputation) = reputation {
+                                                html! {
+                                                    <ybc::Input disabled=self.loading name="other_reputation" update=update_other_reputation_callback value=reputation.clone() placeholder="which one?"/>
+                                                }
+                                            } else {
+                                                html! { <></> }
+                                            }
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field is-horizontal">
+                            <div class="field-label is-normal">
+                                <label class="label">{"I'm"}</label>
+                            </div>
+                            <div class="field-body">
+                                <div class="field">
+                                    <p class="control">
+                                        <ybc::Select name="attributes" value="" update=update_attributes_callback loading=self.loading>
+                                            <option value="311" selected={stats == 311}>{"Heroic"}</option>
+                                            <option value="131" selected={stats == 131}>{"Booksmart"}</option>
+                                            <option value="113" selected={stats == 113}>{"Streetwise"}</option>
+                                            <option value="221" selected={stats == 221}>{"Heroic and Booksmart"}</option>
+                                            <option value="212" selected={stats == 212}>{"Heroic and Streetwise"}</option>
+                                            <option value="122" selected={stats == 122}>{"Booksmart and Streetwise"}</option>
+                                        </ybc::Select>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <ybc::Tile vertical=false>
                         <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
                             <ybc::Card classes="attribute-card">
@@ -175,20 +312,41 @@ impl Component for CreateCharacter {
                             </ybc::Card>
                         </ybc::Tile>
                     </ybc::Tile>
-                    <p>{"I'm "}
-                    <ybc::Select name="attributes" value="311" update=update_attributes_callback loading=self.loading>
-                        <option value="311">{"Heroic"}</option>
-                        <option value="131">{"Booksmart"}</option>
-                        <option value="113">{"Streetwise"}</option>
-                        <option value="221">{"Heroic and Booksmart"}</option>
-                        <option value="212">{"Heroic and Streetwise"}</option>
-                        <option value="122">{"Booksmart and Streetwise"}</option>
-                    </ybc::Select>
-                    </p>
+                    <ybc::Title size=HeaderSize::Is2>{"Artifact"}</ybc::Title>
+                    <div class="field is-horizontal">
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control create-artifact">
+                                    <div>{"A(n)"}</div>
+                                    <ybc::Input disabled=self.loading name="artifact_name" update=update_artifact_name_callback value=self.props.stats.artifact_name.clone() placeholder="Name"/>
+                                    <div>{"discovered in"}</div>
+                                    <ybc::Input disabled=self.loading name="artifact_origin" update=update_artifact_origin_callback value=self.props.stats.artifact_origin.clone() placeholder="Origin"/>
+                                    <div>{"."}</div>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">{"Artifact Boon:"}</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control">
+                                    <ybc::Select name="attributes" value="" update=update_artifact_boon_callback loading=self.loading>
+                                        <option value="0" selected={self.props.stats.artifact_boon == ArtifactBoon::Reroll}>{"Reroll"}</option>
+                                        <option value="1" selected={self.props.stats.artifact_boon == ArtifactBoon::RollWithPlusTwo}>{"Roll with +2 dice"}</option>
+                                        <option value="2" selected={self.props.stats.artifact_boon == ArtifactBoon::SuccessOnFive}>{"Success on 5+"}</option>
+                                        <option value="3" selected={self.props.stats.artifact_boon == ArtifactBoon::SuccessOnDoubles}>{"Success on doubles"}</option>
+                                    </ybc::Select>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </ybc::Tile>
                 <ybc::Tile vertical=true ctx=TileCtx::Parent>
                     <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>
-                        <ybc::Button loading=self.loading disabled=self.props.stats.name.is_empty() onclick=ready_callback>{"Let's Go!"}</ybc::Button>
+                        <ybc::Button loading=self.loading disabled=invalid_stats onclick=ready_callback>{"Let's Go!"}</ybc::Button>
                     </ybc::Tile>
                     <ybc::Tile classes="box" ctx=TileCtx::Child>
                         <ybc::Title size=HeaderSize::Is4>{"Players"}</ybc::Title>

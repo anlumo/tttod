@@ -12,14 +12,14 @@ pub struct Player {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ArtifactPower {
+pub enum ArtifactBoon {
     Reroll,
-    RollwithPlusTwo,
+    RollWithPlusTwo,
     SuccessOnFive,
     SuccessOnDoubles,
 }
 
-impl Default for ArtifactPower {
+impl Default for ArtifactBoon {
     fn default() -> Self {
         Self::Reroll
     }
@@ -54,15 +54,71 @@ impl Default for MentalCondition {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerStats {
     pub name: String,
-    pub speciality: String,
-    pub reputation: String,
+    pub speciality: Speciality,
+    pub reputation: Reputation,
     pub heroic: u8,
     pub booksmart: u8,
     pub streetwise: u8,
     pub artifact_name: String,
     pub artifact_origin: String,
-    pub artifact_power: ArtifactPower,
+    pub artifact_boon: ArtifactBoon,
+}
+
+impl Default for PlayerStats {
+    fn default() -> Self {
+        Self {
+            name: "".to_owned(),
+            speciality: Speciality::default(),
+            reputation: Reputation::default(),
+            heroic: 3,
+            booksmart: 1,
+            streetwise: 1,
+            artifact_name: "".to_owned(),
+            artifact_origin: "".to_owned(),
+            artifact_boon: ArtifactBoon::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Speciality {
+    Religion,
+    Linguistics,
+    Architecture,
+    WarAndWeaponry,
+    GemsAndMetals,
+    SecretSignsSymbols,
+    Osteology,
+    DeathAndBurial,
+    Other(String),
+}
+
+impl Default for Speciality {
+    fn default() -> Self {
+        Self::Religion
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Reputation {
+    Ambitious,
+    Genius,
+    Ruthless,
+    Senile,
+    MadScientist,
+    BornLeader,
+    Rulebreaker,
+    Obsessive,
+    Other(String),
+}
+
+impl Default for Reputation {
+    fn default() -> Self {
+        Self::Ambitious
+    }
 }

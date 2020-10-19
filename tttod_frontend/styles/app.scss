@@ -97,3 +97,34 @@ tr .name {
 .attribute-card {
     margin: 10px;
 }
+
+.character-name-input {
+    display: flex;
+    align-items: baseline;
+    &>* {
+        margin-right: 0.5em;
+    }
+    &>input {
+        width: 40%;
+    }
+}
+
+.control.reputation, .control.speciality {
+    display: flex;
+    align-items: baseline;
+    &>* {
+        margin-right: 0.5em;
+    }
+}
+
+.create-artifact {
+    display: flex;
+    align-items: baseline;
+    &>input {
+        width: 30%;
+        margin: 0 0.4em;
+        &[name=artifact_origin] {
+            margin-right: 0;
+        }
+    }
+}

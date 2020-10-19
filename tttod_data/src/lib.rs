@@ -1,5 +1,5 @@
 mod player;
-pub use player::{Player, PlayerStats};
+pub use player::{ArtifactBoon, Player, PlayerStats, Reputation, Speciality};
 mod message;
 pub use message::{ClientToServerMessage, ServerToClientMessage};
 mod game_state;

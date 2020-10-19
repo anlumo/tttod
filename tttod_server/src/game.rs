@@ -356,22 +356,27 @@ impl GameManager {
                 Some(InternalMessage::Message { player_id, message }) => match message {
                     ClientToServerMessage::SetCharacter { stats } => {
                         if let Some((player, _)) = self.players.get_mut(&player_id) {
-                            if !player.ready
-                                && stats.heroic > 0
-                                && stats.booksmart > 0
-                                && stats.streetwise > 0
-                                && stats.heroic + stats.booksmart + stats.streetwise == 5
-                                && !stats.name.is_empty()
-                                && !stats.speciality.is_empty()
-                                && !stats.reputation.is_empty()
-                                && !stats.artifact_name.is_empty()
-                                && !stats.artifact_origin.is_empty()
-                            {
+                            if !player.ready {
                                 player.stats = Some(stats);
-                                player.ready = true;
                             }
                         }
                         self.push_state_all(GameState::CharacterCreation)?;
+                    }
+                    ClientToServerMessage::ReadyForGame => {
+                        if let Some((player, _)) = self.players.get_mut(&player_id) {
+                            if let Some(stats) = &player.stats {
+                                if stats.heroic > 0
+                                    && stats.booksmart > 0
+                                    && stats.streetwise > 0
+                                    && stats.heroic + stats.booksmart + stats.streetwise == 5
+                                    && !stats.name.is_empty()
+                                    && !stats.artifact_name.is_empty()
+                                    && !stats.artifact_origin.is_empty()
+                                {
+                                    player.ready = true;
+                                }
+                            }
+                        }
                     }
                     _ => {}
                 },
