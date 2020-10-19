@@ -1,3 +1,4 @@
+use super::PlayerList;
 use crate::{components::Icon, IconName};
 use std::collections::HashMap;
 use tttod_data::{ArtifactBoon, Player, PlayerStats, Reputation, Speciality};
@@ -348,33 +349,7 @@ impl Component for CreateCharacter {
                     <ybc::Tile ctx=TileCtx::Child size=TileSize::Twelve>
                         <ybc::Button loading=self.loading disabled=invalid_stats onclick=ready_callback>{"Let's Go!"}</ybc::Button>
                     </ybc::Tile>
-                    <ybc::Tile classes="box" ctx=TileCtx::Child>
-                        <ybc::Title size=HeaderSize::Is4>{"Players"}</ybc::Title>
-                        <ybc::Table striped=true narrow=true fullwidth=true>
-                            <thead>
-                                <tr><th></th><th class="name">{"Name"}</th></tr>
-                            </thead>
-                            <tbody>
-                            {
-                                for self.props.players.iter().map(move |(player_id, player)| {
-                                    html! {
-                                        <tr><td>{
-                                            if player.ready {
-                                                html! {
-                                                    <Icon name=IconName::CheckCircle/>
-                                                }
-                                            } else {
-                                                html! {
-                                                    <Icon name=IconName::Hourglass/>
-                                                }
-                                            }
-                                        }</td><td class="name">{&player.name}</td></tr>
-                                    }
-                                })
-                            }
-                            </tbody>
-                        </ybc::Table>
-                    </ybc::Tile>
+                    <PlayerList player_id=self.props.player_id players=&self.props.players/>
                 </ybc::Tile>
             </ybc::Tile>
         }

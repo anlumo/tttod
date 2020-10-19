@@ -4,6 +4,8 @@ mod define_evil;
 pub use define_evil::DefineEvil;
 mod create_character;
 pub use create_character::CreateCharacter;
+mod player_list;
+pub use player_list::PlayerList;
 
 use futures::{
     sink::SinkExt,
