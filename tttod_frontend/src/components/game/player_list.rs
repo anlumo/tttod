@@ -33,33 +33,23 @@ impl Component for PlayerList {
 
     fn view(&self) -> Html {
         html! {
-            <ybc::Tile classes="box" ctx=TileCtx::Child>
-                <ybc::Title size=HeaderSize::Is4>{"Players"}</ybc::Title>
-                <ybc::Table striped=true narrow=true fullwidth=true>
-                    <thead>
-                        <tr><th></th><th class="name">{"Name"}</th></tr>
-                    </thead>
-                    <tbody>
-                    {
-                        for self.props.players.iter().map(move |(player_id, player)| {
-                            html! {
-                                <tr><td>{
-                                    if player.ready {
-                                        html! {
-                                            <Icon name=IconName::CheckCircle/>
-                                        }
-                                    } else {
-                                        html! {
-                                            <Icon name=IconName::Hourglass/>
-                                        }
-                                    }
-                                }</td><td class="name">{&player.name}</td></tr>
-                            }
-                        })
+            <div class="player-list">
+            {
+                for self.props.players.iter().map(|(player_id, player)| {
+                    html! {
+                        <span title={&player.name}>
+                            <Icon name={if player.ready { IconName::UserGraduate } else { IconName::UserClock }} classes={
+                                if player.ready {
+                                    "user-ready"
+                                } else {
+                                    "user-not-ready"
+                                }
+                            }/>
+                        </span>
                     }
-                    </tbody>
-                </ybc::Table>
-            </ybc::Tile>
+                })
+            }
+            </div>
         }
     }
 }
