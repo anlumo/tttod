@@ -129,7 +129,7 @@ impl Component for Lobby {
                         <ybc::Title size=HeaderSize::Is4>{"Players"}</ybc::Title>
                         <ybc::Table striped=true narrow=true fullwidth=true>
                             <thead>
-                                <tr><th class="name">{"Name"}</th><th></th></tr>
+                                <tr><th></th><th class="name">{"Name"}</th><th></th></tr>
                             </thead>
                             <tbody>
                             {
@@ -138,7 +138,7 @@ impl Component for Lobby {
                                     let onclick_callback = self.link.callback(move |_| Msg::VoteKick(player_id));
                                     if player.name.is_empty() {
                                         html! {
-                                            <tr><td class="name"><em>{"unknown"}</em></td><td>
+                                            <tr><td><Icon name=IconName::Hourglass/></td><td class="name"><em>{"unknown"}</em></td><td>
                                             {
                                                 if let Some(kick_votes) = self.props.player_kick_votes.get(&player_id) {
                                                     (0..kick_votes.len()).map(|_| html! {
@@ -161,11 +161,31 @@ impl Component for Lobby {
                                         }
                                     } else if player_id != self.props.player_id {
                                         html! {
-                                            <tr><td class="name">{&player.name}</td><td><ybc::Button classes="is-danger is-rounded is-light" onclick=onclick_callback><Icon name=IconName::UserSlash/></ybc::Button></td></tr>
+                                            <tr><td>{
+                                                if player.ready {
+                                                    html! {
+                                                        <Icon name=IconName::CheckCircle/>
+                                                    }
+                                                } else {
+                                                    html! {
+                                                        <Icon name=IconName::Hourglass/>
+                                                    }
+                                                }
+                                            }</td><td class="name">{&player.name}</td><td><ybc::Button classes="is-danger is-rounded is-light" onclick=onclick_callback><Icon name=IconName::UserSlash/></ybc::Button></td></tr>
                                         }
                                     } else {
                                         html! {
-                                            <tr><td class="name">{&player.name}</td><td></td></tr>
+                                            <tr><td>{
+                                                if player.ready {
+                                                    html! {
+                                                        <Icon name=IconName::CheckCircle/>
+                                                    }
+                                                } else {
+                                                    html! {
+                                                        <Icon name=IconName::Hourglass/>
+                                                    }
+                                                }
+                                            }</td><td class="name">{&player.name}</td><td></td></tr>
                                         }
                                     }
                                 })
