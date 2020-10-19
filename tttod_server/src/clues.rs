@@ -30,7 +30,7 @@ impl fmt::Display for Question {
             Self::Motivation => write!(f, "What motivates me and drives me forward?"),
             Self::KeptSealed => write!(f, "What kept me sealed away all these years?"),
             Self::TrueForm => write!(f, "What does my true form look like?"),
-            Self::Temptation => write!(f, "What do I promise to temp others to obey me?"),
+            Self::Temptation => write!(f, "What do I promise to tempt others to obey me?"),
         }
     }
 }
