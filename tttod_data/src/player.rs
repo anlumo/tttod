@@ -19,6 +19,12 @@ pub enum ArtifactPower {
     SuccessOnDoubles,
 }
 
+impl Default for ArtifactPower {
+    fn default() -> Self {
+        Self::Reroll
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Condition {
@@ -48,7 +54,7 @@ impl Default for MentalCondition {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PlayerStats {
     pub name: String,
     pub speciality: String,

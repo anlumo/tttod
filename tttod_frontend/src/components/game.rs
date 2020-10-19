@@ -2,6 +2,8 @@ mod lobby;
 pub use lobby::Lobby;
 mod define_evil;
 pub use define_evil::DefineEvil;
+mod create_character;
+pub use create_character::CreateCharacter;
 
 use futures::{
     sink::SinkExt,
@@ -12,7 +14,7 @@ use std::{
     collections::{HashMap, HashSet},
     rc::Rc,
 };
-use tttod_data::{ClientToServerMessage, GameState, Player, ServerToClientMessage};
+use tttod_data::{ClientToServerMessage, GameState, Player, PlayerStats, ServerToClientMessage};
 use uuid::Uuid;
 use wasm_bindgen::{closure::Closure, JsCast};
 use wasm_bindgen_futures::spawn_local;
@@ -41,6 +43,7 @@ pub enum Msg {
     VoteKick(Uuid),
     PlayerReady,
     SetAnswer(usize, String),
+    SetCharacter(PlayerStats),
     SetWebsocket(WsMeta, SplitSink<WsStream, WsMessage>),
     WebsocketClosed,
     ConnectWebsocket,
@@ -110,6 +113,10 @@ impl Component for Game {
                     });
                 }
                 updated
+            }
+            Msg::SetCharacter(stats) => {
+                self.send_message(ClientToServerMessage::SetCharacter { stats });
+                false
             }
             Msg::SetWebsocket(meta, sink) => {
                 self.websocket = Some((meta, Rc::new(RefCell::new(sink))));
@@ -182,6 +189,7 @@ impl Component for Game {
         let set_ready_callback = self.link.callback(|_| Msg::PlayerReady);
         let vote_kick_callback = self.link.callback(Msg::VoteKick);
         let set_answer_callback = self.link.callback(|(idx, text)| Msg::SetAnswer(idx, text));
+        let set_character_callback = self.link.callback(Msg::SetCharacter);
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
@@ -199,8 +207,13 @@ impl Component for Game {
                             }
                         }
                         GameState::CharacterCreation => {
+                            let stats = if let Some(player) = self.players.get(&self.player_id) {
+                                player.stats.clone().unwrap_or_default()
+                            } else {
+                                PlayerStats::default()
+                            };
                             html! {
-                                <div/>
+                                <CreateCharacter stats=stats player_id=self.player_id players=self.players.clone() set_character=set_character_callback set_ready=set_ready_callback/>
                             }
                         }
                         GameState::Game => {
