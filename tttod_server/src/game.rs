@@ -280,15 +280,33 @@ impl GameManager {
                                     let mut answer_iter = answers.into_iter();
                                     for question in questions.iter_mut() {
                                         if let Some(answer) = answer_iter.next() {
-                                            question.1 = Some(answer);
+                                            if !answer.is_empty() {
+                                                question.1 = Some(answer);
+                                            } else {
+                                                question.1 = None;
+                                            }
                                         }
-                                    }
-                                    if questions.iter().all(|(_, answer)| answer.is_some()) {
-                                        player.ready = true;
-                                        self.push_state_all(GameState::DefineEvil)?;
                                     }
                                 }
                             }
+                        }
+                    }
+                    ClientToServerMessage::ReadyForGame => {
+                        let mut ready = false;
+                        if let Some((player, _)) = self.players.get_mut(&player_id) {
+                            if !player.ready {
+                                if let Some(questions) = player_questions.get(&player_id) {
+                                    ready = questions.iter().all(|(_, answer)| {
+                                        answer.as_ref().filter(|a| !a.is_empty()).is_some()
+                                    });
+                                    if ready {
+                                        player.ready = true;
+                                    }
+                                }
+                            }
+                        }
+                        if ready {
+                            self.push_state_all(GameState::DefineEvil)?;
                         }
                     }
                     _ => {}

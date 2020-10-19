@@ -75,6 +75,9 @@ body {
 button {
     font-family: 'Adventure';
 }
+textarea {
+    font-family: 'Piazzolla';
+}
 
 .tile.is-ancestor {
     background-color: adjust-color($scheme-main, $alpha: -0.2);

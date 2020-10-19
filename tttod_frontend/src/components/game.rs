@@ -1,5 +1,7 @@
 mod lobby;
 pub use lobby::Lobby;
+mod define_evil;
+pub use define_evil::DefineEvil;
 
 use futures::{
     sink::SinkExt,
@@ -26,6 +28,7 @@ pub struct Game {
     websocket: Option<(WsMeta, Rc<RefCell<SplitSink<WsStream, WsMessage>>>)>,
     players: HashMap<Uuid, Player>,
     player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
+    questions: Vec<(String, String)>,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -37,6 +40,7 @@ pub enum Msg {
     SetPlayerName(String),
     VoteKick(Uuid),
     PlayerReady,
+    SetAnswer(usize, String),
     SetWebsocket(WsMeta, SplitSink<WsStream, WsMessage>),
     WebsocketClosed,
     ConnectWebsocket,
@@ -73,6 +77,7 @@ impl Component for Game {
             websocket: None,
             players: HashMap::new(),
             player_kick_votes: HashMap::new(),
+            questions: Vec::new(),
         };
         instance.connect_websocket();
         instance
@@ -91,6 +96,20 @@ impl Component for Game {
             Msg::VoteKick(player_id) => {
                 self.send_message(ClientToServerMessage::VoteKickPlayer { player_id });
                 false
+            }
+            Msg::SetAnswer(idx, text) => {
+                let updated = if let Some((_, answer)) = self.questions.get_mut(idx) {
+                    *answer = text;
+                    true
+                } else {
+                    false
+                };
+                if updated {
+                    self.send_message(ClientToServerMessage::Answers {
+                        answers: self.questions.iter().map(|(_, a)| a.clone()).collect(),
+                    });
+                }
+                updated
             }
             Msg::SetWebsocket(meta, sink) => {
                 self.websocket = Some((meta, Rc::new(RefCell::new(sink))));
@@ -113,7 +132,13 @@ impl Component for Game {
                         true
                     }
                     ServerToClientMessage::DeclareGM { player_id: gm } => false,
-                    ServerToClientMessage::Questions { questions } => false,
+                    ServerToClientMessage::Questions { questions } => {
+                        self.questions = questions
+                            .into_iter()
+                            .map(|(q, a)| (q, a.unwrap_or_default()))
+                            .collect();
+                        true
+                    }
                 }
             }
             Msg::WebsocketClosed => {
@@ -156,6 +181,7 @@ impl Component for Game {
         let set_name_callback = self.link.callback(Msg::SetPlayerName);
         let set_ready_callback = self.link.callback(|_| Msg::PlayerReady);
         let vote_kick_callback = self.link.callback(Msg::VoteKick);
+        let set_answer_callback = self.link.callback(|(idx, text)| Msg::SetAnswer(idx, text));
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
@@ -169,7 +195,7 @@ impl Component for Game {
                         }
                         GameState::DefineEvil => {
                             html! {
-                                <div/>
+                                <DefineEvil player_id=self.player_id players=self.players.clone() questions=self.questions.clone() set_answer=set_answer_callback set_ready=set_ready_callback/>
                             }
                         }
                         GameState::CharacterCreation => {
