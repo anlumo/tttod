@@ -106,6 +106,13 @@ impl Component for Lobby {
     fn view(&self) -> Html {
         let game_callback = self.link.callback(|_| Msg::EnterGame);
         let update_name_callback = self.link.callback(Msg::UpdateName);
+        let mut players: Vec<_> = self
+            .props
+            .players
+            .iter()
+            .map(|(id, player)| (*id, player))
+            .collect();
+        players.sort_by(|(id_a, _), (id_b, _)| id_a.cmp(id_b));
         html! {
             <>
                 <ybc::Tile vertical=true size=TileSize::Eight ctx=TileCtx::Parent>
@@ -133,7 +140,7 @@ impl Component for Lobby {
                             </thead>
                             <tbody>
                             {
-                                for self.props.players.iter().map(move |(player_id, player)| {
+                                for players.iter().map(move |(player_id, player)| {
                                     let player_id = *player_id;
                                     let onclick_callback = self.link.callback(move |_| Msg::VoteKick(player_id));
                                     if player.name.is_empty() {

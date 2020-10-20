@@ -31,10 +31,17 @@ impl Component for PlayerList {
     }
 
     fn view(&self) -> Html {
+        let mut players: Vec<_> = self
+            .props
+            .players
+            .iter()
+            .map(|(id, player)| (*id, player))
+            .collect();
+        players.sort_by(|(id_a, _), (id_b, _)| id_a.cmp(id_b));
         html! {
             <div class="player-list">
             {
-                for self.props.players.iter().map(|(player_id, player)| {
+                for players.into_iter().map(|(_, player)| {
                     html! {
                         <span title={&player.name}>
                             <Icon name={if player.ready { IconName::UserGraduate } else { IconName::UserClock }} classes={
