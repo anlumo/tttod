@@ -1,7 +1,7 @@
 use super::PlayerList;
 use crate::{components::Icon, IconName};
 use std::collections::HashMap;
-use tttod_data::{ArtifactBoon, Player, PlayerStats, Reputation, Speciality};
+use tttod_data::{ArtifactBoon, Attribute, Player, PlayerStats, Reputation, Speciality};
 use uuid::Uuid;
 use ybc::{HeaderSize, TileCtx, TileSize};
 use yew::prelude::*;
@@ -92,39 +92,42 @@ impl Component for CreateCharacter {
             }
             Msg::UpdateAttributes(code) => {
                 let mut stats = self.props.stats.clone();
-                match code.as_str() {
-                    "311" => {
-                        stats.heroic = 3;
-                        stats.booksmart = 1;
-                        stats.streetwise = 1;
-                    }
-                    "131" => {
-                        stats.heroic = 1;
-                        stats.booksmart = 3;
-                        stats.streetwise = 1;
-                    }
-                    "113" => {
-                        stats.heroic = 1;
-                        stats.booksmart = 1;
-                        stats.streetwise = 3;
-                    }
-                    "221" => {
-                        stats.heroic = 2;
-                        stats.booksmart = 2;
-                        stats.streetwise = 1;
-                    }
-                    "212" => {
-                        stats.heroic = 2;
-                        stats.booksmart = 1;
-                        stats.streetwise = 2;
-                    }
-                    "122" => {
-                        stats.heroic = 1;
-                        stats.booksmart = 2;
-                        stats.streetwise = 2;
-                    }
+                stats.attributes = match code.as_str() {
+                    "311" => [
+                        (Attribute::Heroic, 3),
+                        (Attribute::Booksmart, 1),
+                        (Attribute::Streetwise, 1),
+                    ],
+                    "131" => [
+                        (Attribute::Heroic, 1),
+                        (Attribute::Booksmart, 3),
+                        (Attribute::Streetwise, 1),
+                    ],
+                    "113" => [
+                        (Attribute::Heroic, 1),
+                        (Attribute::Booksmart, 1),
+                        (Attribute::Streetwise, 3),
+                    ],
+                    "221" => [
+                        (Attribute::Heroic, 2),
+                        (Attribute::Booksmart, 2),
+                        (Attribute::Streetwise, 1),
+                    ],
+                    "212" => [
+                        (Attribute::Heroic, 2),
+                        (Attribute::Booksmart, 1),
+                        (Attribute::Streetwise, 2),
+                    ],
+                    "122" => [
+                        (Attribute::Heroic, 1),
+                        (Attribute::Booksmart, 2),
+                        (Attribute::Streetwise, 2),
+                    ],
                     _ => return false,
                 }
+                .iter()
+                .cloned()
+                .collect();
                 self.props.set_character.emit(stats);
             }
             Msg::UpdateArtifactName(name) => {
@@ -170,9 +173,28 @@ impl Component for CreateCharacter {
             })
         });
         let player = self.props.players.get(&self.props.player_id);
-        let stats = 100 * (self.props.stats.heroic as usize)
-            + 10 * (self.props.stats.booksmart as usize)
-            + (self.props.stats.streetwise as usize);
+        let stats = 100
+            * (self
+                .props
+                .stats
+                .attributes
+                .get(&Attribute::Heroic)
+                .cloned()
+                .unwrap_or(0) as usize)
+            + 10 * (self
+                .props
+                .stats
+                .attributes
+                .get(&Attribute::Booksmart)
+                .cloned()
+                .unwrap_or(0) as usize)
+            + (self
+                .props
+                .stats
+                .attributes
+                .get(&Attribute::Streetwise)
+                .cloned()
+                .unwrap_or(0) as usize);
         let speciality = &self.props.stats.speciality;
         let reputation = &self.props.stats.reputation;
         let invalid_stats = self.props.stats.name.is_empty()

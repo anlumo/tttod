@@ -144,7 +144,10 @@ impl Component for Game {
                         self.player_kick_votes = player_kick_votes;
                         true
                     }
-                    ServerToClientMessage::DeclareGM { player_id: gm } => false,
+                    ServerToClientMessage::DeclareGM {
+                        player_id: gm,
+                        clue,
+                    } => false,
                     ServerToClientMessage::Questions { questions } => {
                         self.questions = questions
                             .into_iter()

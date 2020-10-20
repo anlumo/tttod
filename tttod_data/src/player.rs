@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Player {
@@ -66,14 +66,19 @@ impl Default for MentalCondition {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum Attribute {
+    Heroic,
+    Booksmart,
+    Streetwise,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerStats {
     pub name: String,
     pub speciality: Speciality,
     pub reputation: Reputation,
-    pub heroic: u8,
-    pub booksmart: u8,
-    pub streetwise: u8,
+    pub attributes: HashMap<Attribute, u8>,
     pub artifact_name: String,
     pub artifact_origin: String,
     pub artifact_boon: ArtifactBoon,
@@ -85,9 +90,14 @@ impl Default for PlayerStats {
             name: "".to_owned(),
             speciality: Speciality::default(),
             reputation: Reputation::default(),
-            heroic: 3,
-            booksmart: 1,
-            streetwise: 1,
+            attributes: [
+                (Attribute::Heroic, 3),
+                (Attribute::Booksmart, 1),
+                (Attribute::Streetwise, 1),
+            ]
+            .iter()
+            .cloned()
+            .collect(),
             artifact_name: "".to_owned(),
             artifact_origin: "".to_owned(),
             artifact_boon: ArtifactBoon::default(),

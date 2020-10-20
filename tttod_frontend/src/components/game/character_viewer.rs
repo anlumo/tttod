@@ -1,5 +1,5 @@
 use crate::{components::Icon, IconName};
-use tttod_data::{ArtifactBoon, Player};
+use tttod_data::{ArtifactBoon, Attribute, Player, PlayerStats};
 use yew::prelude::*;
 
 pub struct CharacterViewer {
@@ -57,15 +57,15 @@ impl Component for CharacterViewer {
                     </ybc::CardContent>
                     <ybc::CardFooter>
                         <div class="card-footer-item">
-                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats.heroic)/>
+                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Heroic)/>
                                 {" Heroic"}
                         </div>
                         <div class="card-footer-item">
-                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats.booksmart)/>
+                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Booksmart)/>
                             {" Booksmart"}
                         </div>
                         <div class="card-footer-item">
-                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats.streetwise)/>
+                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Streetwise)/>
                             {" Streetwise"}
                         </div>
                     </ybc::CardFooter>
@@ -78,11 +78,11 @@ impl Component for CharacterViewer {
 }
 
 impl CharacterViewer {
-    fn stat_to_icon(stat: u8) -> IconName {
-        match stat {
-            3 => IconName::AngleDoubleUp,
-            2 => IconName::AngleUp,
-            1 => IconName::AngleDown,
+    fn stat_to_icon(stats: &PlayerStats, attribute: Attribute) -> IconName {
+        match stats.attributes.get(&attribute) {
+            Some(3) => IconName::AngleDoubleUp,
+            Some(2) => IconName::AngleUp,
+            Some(1) => IconName::AngleDown,
             _ => IconName::Asterisk,
         }
     }

@@ -7,7 +7,7 @@ use futures::{
 };
 use rand::seq::SliceRandom;
 use std::collections::{HashMap, HashSet};
-use tttod_data::{ClientToServerMessage, GameState, Player, ServerToClientMessage};
+use tttod_data::{Attribute, ClientToServerMessage, GameState, Player, ServerToClientMessage};
 use uuid::Uuid;
 
 const MIN_PLAYERS: usize = 3;
@@ -416,10 +416,25 @@ impl GameManager {
                     ClientToServerMessage::ReadyForGame => {
                         if let Some((player, _)) = self.players.get_mut(&player_id) {
                             if let Some(stats) = &player.stats {
-                                if stats.heroic > 0
-                                    && stats.booksmart > 0
-                                    && stats.streetwise > 0
-                                    && stats.heroic + stats.booksmart + stats.streetwise == 5
+                                let heroic = stats
+                                    .attributes
+                                    .get(&Attribute::Heroic)
+                                    .cloned()
+                                    .unwrap_or(0);
+                                let booksmart = stats
+                                    .attributes
+                                    .get(&Attribute::Booksmart)
+                                    .cloned()
+                                    .unwrap_or(0);
+                                let streetwise = stats
+                                    .attributes
+                                    .get(&Attribute::Streetwise)
+                                    .cloned()
+                                    .unwrap_or(0);
+                                if heroic > 0
+                                    && booksmart > 0
+                                    && streetwise > 0
+                                    && heroic + booksmart + streetwise == 5
                                     && !stats.name.is_empty()
                                     && !stats.artifact_name.is_empty()
                                     && !stats.artifact_origin.is_empty()
@@ -499,8 +514,21 @@ impl GameManager {
         gms.shuffle(&mut rng);
 
         for (room, gm) in gms.into_iter().enumerate() {
+            let clue = self.clues[room].1.clone();
             self.push_state_all(GameState::Room(room));
-            self.send_all(ServerToClientMessage::DeclareGM { player_id: gm });
+            self.send_all_f(|client_id| {
+                Some(if client_id == gm {
+                    ServerToClientMessage::DeclareGM {
+                        player_id: gm,
+                        clue: Some(clue.clone()),
+                    }
+                } else {
+                    ServerToClientMessage::DeclareGM {
+                        player_id: gm,
+                        clue: None,
+                    }
+                })
+            });
 
             match self.receiver.next().await {
                 None => {
@@ -525,10 +553,18 @@ impl GameManager {
                                 player_kick_votes: HashMap::new(),
                             },
                         );
+                        let clue = if player_id == gm {
+                            Some(clue.clone())
+                        } else {
+                            None
+                        };
                         self.send_to_client(
                             player_id,
                             client_idx,
-                            ServerToClientMessage::DeclareGM { player_id: gm },
+                            ServerToClientMessage::DeclareGM {
+                                player_id: gm,
+                                clue,
+                            },
                         );
                     } else {
                         sender

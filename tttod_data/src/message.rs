@@ -1,4 +1,4 @@
-use crate::{GameState, Player, PlayerStats};
+use crate::{Attribute, GameState, Player, PlayerStats};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
@@ -6,12 +6,28 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "cmd", rename_all = "snake_case")]
 pub enum ClientToServerMessage {
-    SetPlayerName { name: String },
+    SetPlayerName {
+        name: String,
+    },
     ReadyForGame,
-    VoteKickPlayer { player_id: Uuid },
-    RevertVoteKickPlayer { player_id: Uuid },
-    Answers { answers: Vec<String> },
-    SetCharacter { stats: PlayerStats },
+    VoteKickPlayer {
+        player_id: Uuid,
+    },
+    RevertVoteKickPlayer {
+        player_id: Uuid,
+    },
+    Answers {
+        answers: Vec<String>,
+    },
+    SetCharacter {
+        stats: PlayerStats,
+    },
+    Challenge {
+        player_id: Uuid,
+        attribute: Attribute,
+        speciality_applies: bool,
+        reputation_applies: bool,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -29,6 +45,7 @@ pub enum ServerToClientMessage {
     },
     DeclareGM {
         player_id: Uuid,
+        clue: Option<String>,
     },
     EndGame,
 }
