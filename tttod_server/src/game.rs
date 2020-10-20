@@ -129,14 +129,24 @@ impl GameManager {
             return;
         }
         // enter the temple
-        if let Err(err) = instance.enter_temple().await {
-            log::error!("enter_temple: {:?}", err);
-            return;
-        }
-        // face the ancient evil
-        if let Err(err) = instance.face_ancient_evil().await {
-            log::error!("face_ancient_evil: {:?}", err);
-            return;
+        match instance.enter_temple().await {
+            Err(err) => {
+                log::error!("enter_temple: {:?}", err);
+                return;
+            }
+            Ok(success) => {
+                if success {
+                    // face the ancient evil
+                    if let Err(err) = instance.face_ancient_evil().await {
+                        log::error!("face_ancient_evil: {:?}", err);
+                    }
+                } else {
+                    // failure
+                    if let Err(err) = instance.failed().await {
+                        log::error!("failed: {:?}", err);
+                    }
+                }
+            }
         }
     }
 
@@ -507,7 +517,7 @@ impl GameManager {
         }
         Ok(())
     }
-    async fn enter_temple(&mut self) -> Result<(), Error> {
+    async fn enter_temple(&mut self) -> Result<bool, Error> {
         for (player, _) in self.players.values_mut() {
             player.ready = false;
         }
@@ -534,7 +544,7 @@ impl GameManager {
                 })
             });
 
-            while successes < SUCCESSES_NEEDED && failures < FAILURES_NEEDED {
+            while successes < SUCCESSES_NEEDED {
                 match self.receiver.next().await {
                     None => {
                         log::error!("Game failed");
@@ -587,12 +597,18 @@ impl GameManager {
                         _ => {}
                     },
                 }
+                if failures >= FAILURES_NEEDED {
+                    return Ok(false);
+                }
             }
         }
 
-        Ok(())
+        Ok(true)
     }
     async fn face_ancient_evil(&mut self) -> Result<(), Error> {
+        Ok(())
+    }
+    async fn failed(&mut self) -> Result<(), Error> {
         Ok(())
     }
 }
