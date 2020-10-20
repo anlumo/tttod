@@ -13,6 +13,8 @@ use uuid::Uuid;
 const MIN_PLAYERS: usize = 3;
 const MAX_PLAYERS: usize = 5;
 const QUESTIONS_PER_PLAYER: usize = 2;
+const SUCCESSES_NEEDED: usize = 3;
+const FAILURES_NEEDED: usize = 3;
 
 #[derive(Debug, Clone)]
 pub enum InternalMessage {
@@ -514,6 +516,8 @@ impl GameManager {
         gms.shuffle(&mut rng);
 
         for (room, gm) in gms.into_iter().enumerate() {
+            let mut successes = 0;
+            let mut failures = 0;
             let clue = self.clues[room].1.clone();
             self.push_state_all(GameState::Room(room));
             self.send_all_f(|client_id| {
@@ -530,57 +534,59 @@ impl GameManager {
                 })
             });
 
-            match self.receiver.next().await {
-                None => {
-                    log::error!("Game failed");
-                    return Err(Error::NoPlayers);
-                }
-                Some(InternalMessage::AddClient { player_id, sender }) => {
-                    let all_players: HashMap<_, _> = self
-                        .players
-                        .iter()
-                        .map(|(id, (player, _))| (*id, player.clone()))
-                        .collect();
-                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
-                        let client_idx = senders.len();
-                        senders.push(sender);
-                        self.send_to_client(
-                            player_id,
-                            client_idx,
-                            ServerToClientMessage::PushState {
-                                players: all_players.clone(),
-                                game_state: GameState::Room(room),
-                                player_kick_votes: HashMap::new(),
-                            },
-                        );
-                        let clue = if player_id == gm {
-                            Some(clue.clone())
+            while successes < SUCCESSES_NEEDED && failures < FAILURES_NEEDED {
+                match self.receiver.next().await {
+                    None => {
+                        log::error!("Game failed");
+                        return Err(Error::NoPlayers);
+                    }
+                    Some(InternalMessage::AddClient { player_id, sender }) => {
+                        let all_players: HashMap<_, _> = self
+                            .players
+                            .iter()
+                            .map(|(id, (player, _))| (*id, player.clone()))
+                            .collect();
+                        if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                            let client_idx = senders.len();
+                            senders.push(sender);
+                            self.send_to_client(
+                                player_id,
+                                client_idx,
+                                ServerToClientMessage::PushState {
+                                    players: all_players.clone(),
+                                    game_state: GameState::Room(room),
+                                    player_kick_votes: HashMap::new(),
+                                },
+                            );
+                            let clue = if player_id == gm {
+                                Some(clue.clone())
+                            } else {
+                                None
+                            };
+                            self.send_to_client(
+                                player_id,
+                                client_idx,
+                                ServerToClientMessage::DeclareGM {
+                                    player_id: gm,
+                                    clue,
+                                },
+                            );
                         } else {
-                            None
-                        };
-                        self.send_to_client(
-                            player_id,
-                            client_idx,
-                            ServerToClientMessage::DeclareGM {
-                                player_id: gm,
-                                clue,
-                            },
-                        );
-                    } else {
-                        sender
-                            .unbounded_send(ServerToClientMessage::GameIsOngoing)
-                            .ok();
-                        sender.close_channel();
+                            sender
+                                .unbounded_send(ServerToClientMessage::GameIsOngoing)
+                                .ok();
+                            sender.close_channel();
+                        }
                     }
-                }
-                Some(InternalMessage::RemoveClient { player_id }) => {
-                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
-                        senders.drain_filter(|sender| sender.is_closed());
+                    Some(InternalMessage::RemoveClient { player_id }) => {
+                        if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                            senders.drain_filter(|sender| sender.is_closed());
+                        }
                     }
+                    Some(InternalMessage::Message { player_id, message }) => match message {
+                        _ => {}
+                    },
                 }
-                Some(InternalMessage::Message { player_id, message }) => match message {
-                    _ => {}
-                },
             }
         }
 
