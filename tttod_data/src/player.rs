@@ -26,6 +26,17 @@ impl Default for ArtifactBoon {
     }
 }
 
+impl fmt::Display for ArtifactBoon {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Reroll => write!(f, "Reroll"),
+            Self::RollWithPlusTwo => write!(f, "Roll with +2 dice"),
+            Self::SuccessOnFive => write!(f, "Success on 5+"),
+            Self::SuccessOnDoubles => write!(f, "Success on doubles"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Condition {
