@@ -9,6 +9,8 @@ pub struct CharacterViewer {
 #[derive(Debug, Clone, Properties)]
 pub struct Props {
     pub player: Player,
+    #[prop_or_default]
+    pub header: Html,
 }
 
 impl Component for CharacterViewer {
@@ -32,10 +34,11 @@ impl Component for CharacterViewer {
         if let Some(stats) = &player.stats {
             html! {
                 <ybc::Card>
-                    <ybc::CardHeader>
+                    <ybc::CardHeader classes="is-align-items-center">
                         <p class="card-header-title">
-                            {format!("Dr. {} (PhD)", stats.name)}
+                            {format!("[{}] Dr. {} (PhD)", player.name, stats.name)}
                         </p>
+                        {self.props.header.clone()}
                     </ybc::CardHeader>
                     <ybc::CardContent>
                         <ybc::Content tag="div">

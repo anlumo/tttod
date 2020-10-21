@@ -1,7 +1,10 @@
 use super::{CharacterViewer, PlayerList};
 use crate::{components::Icon, IconName};
 use std::collections::HashMap;
-use tttod_data::{Challenge, ChallengeResult, Player, FAILURES_NEEDED, SUCCESSES_NEEDED};
+use tttod_data::{
+    Challenge, ChallengeResult, Condition, MentalCondition, Player, FAILURES_NEEDED,
+    SUCCESSES_NEEDED,
+};
 use uuid::Uuid;
 use wasm_bindgen::JsCast;
 use ybc::{HeaderSize, TileCtx, TileSize};
@@ -122,10 +125,43 @@ impl Component for Room {
                 <ybc::Tile vertical=true ctx=TileCtx::Parent size=TileSize::Twelve>
                     {
                         if is_gm {
-                            self.props.players.iter().filter(|(&player_id, _)| player_id != self.props.player_id).map(|(_, player)| {
+                            self.props.players.iter().filter(|(&player_id, player)| {
+                                player_id != self.props.player_id && player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed
+                            }).map(|(player_id, player)| {
+                                let update_speciality_applies_callback = yew::Callback::noop();
+                                let update_reputation_applies_callback = yew::Callback::noop();
                                 html! {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
-                                        <CharacterViewer player=player.clone()/>
+                                        <CharacterViewer player=player.clone() header={
+                                            html! {
+                                                <ybc::ModalCard id={format!("challenge-{}", player_id)} trigger={
+                                                    html! {
+                                                        <ybc::Button classes="mr-2">{"Challenge"}</ybc::Button>
+                                                    }
+                                                } title=format!("Challenge Dr. {} (PhD)", player.name) body={
+                                                    html! {
+                                                        <>
+                                                            {"The player has to argue how these element"}
+                                                            <ybc::Label classes="checkbox">
+                                                                <ybc::Checkbox name="speciality_applies" checked=false update=update_speciality_applies_callback/>
+                                                                {format!("The speciality of {} applies.", player.stats.as_ref().unwrap().speciality)}
+                                                            </ybc::Label>
+                                                            <ybc::Label classes="checkbox">
+                                                                <ybc::Checkbox name="reputation_applies" checked=false update=update_reputation_applies_callback/>
+                                                                {format!("The character is living up to the reputation of {}.", player.stats.as_ref().unwrap().reputation)}
+                                                            </ybc::Label>
+                                                        </>
+                                                    }
+                                                } footer={
+                                                    html! {
+                                                        <>
+                                                            <ybc::Button>{"Abort"}</ybc::Button>
+                                                            <ybc::Button classes="has-background-danger">{"Offer Challenge"}</ybc::Button>
+                                                        </>
+                                                    }
+                                                }/>
+                                            }
+                                        }/>
                                     </ybc::Tile>
                                 }
                             }).collect()
