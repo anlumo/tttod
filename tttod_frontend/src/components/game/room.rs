@@ -1,4 +1,5 @@
 use super::PlayerList;
+use crate::{components::Icon, IconName};
 use std::collections::HashMap;
 use tttod_data::{Challenge, ChallengeResult, Player, FAILURES_NEEDED, SUCCESSES_NEEDED};
 use uuid::Uuid;
@@ -129,17 +130,24 @@ impl Component for Room {
                             } title="You Are the Game Master Now!" body={
                                 html! {
                                     <>
-                                        <ybc::Box>
-                                            <ybc::Title size=HeaderSize::Is5>{"Use this secret to build your room:"}</ybc::Title>
-                                            {
-                                                if let Some(clue) = &self.props.state.clue {
-                                                    html! {
-                                                        <p>{clue}</p>
+                                        <ybc::Box classes="has-background-primary-light">
+                                            <ybc::Media>
+                                                <ybc::MediaLeft>
+                                                    <Icon classes="has-text-warning is-size-2" name=IconName::ExclamationCircle/>
+                                                </ybc::MediaLeft>
+                                                <ybc::MediaContent>
+                                                    <ybc::Title size=HeaderSize::Is5>{"Use This Secret to Build Your Room"}</ybc::Title>
+                                                    {
+                                                        if let Some(clue) = &self.props.state.clue {
+                                                            html! {
+                                                                <p>{clue}</p>
+                                                            }
+                                                        } else {
+                                                            html! {}
+                                                        }
                                                     }
-                                                } else {
-                                                    html! {}
-                                                }
-                                            }
+                                                </ybc::MediaContent>
+                                            </ybc::Media>
                                         </ybc::Box>
                                         <ybc::Title size=HeaderSize::Is4>{"Help With Creating Rooms"}</ybc::Title>
                                         <p class="block">
