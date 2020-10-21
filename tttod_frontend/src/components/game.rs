@@ -10,6 +10,8 @@ mod introduce_characters;
 pub use introduce_characters::IntroduceCharacters;
 mod character_viewer;
 pub use character_viewer::CharacterViewer;
+mod room;
+pub use room::{Room, RoomState};
 
 use futures::{
     sink::SinkExt,
@@ -37,6 +39,7 @@ pub struct Game {
     players: HashMap<Uuid, Player>,
     player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
     questions: Vec<(String, String)>,
+    room_state: RoomState,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -54,6 +57,7 @@ pub enum Msg {
     WebsocketClosed,
     ConnectWebsocket,
     ReceivedMessage(ServerToClientMessage),
+    RejectSecret,
 }
 
 fn local_storage() -> web_sys::Storage {
@@ -87,6 +91,7 @@ impl Component for Game {
             players: HashMap::new(),
             player_kick_votes: HashMap::new(),
             questions: Vec::new(),
+            room_state: RoomState::default(),
         };
         instance.connect_websocket();
         instance
@@ -145,10 +150,6 @@ impl Component for Game {
                         self.player_kick_votes = player_kick_votes;
                         true
                     }
-                    ServerToClientMessage::DeclareGM {
-                        player_id: gm,
-                        clue,
-                    } => false,
                     ServerToClientMessage::Questions { questions } => {
                         self.questions = questions
                             .into_iter()
@@ -156,8 +157,29 @@ impl Component for Game {
                             .collect();
                         true
                     }
+                    ServerToClientMessage::PushClue { clue } => {
+                        self.room_state.clue = Some(clue);
+                        true
+                    }
+                    ServerToClientMessage::ReceivedChallenge(challenge) => {
+                        self.room_state.challenge = Some(challenge);
+                        true
+                    }
+                    ServerToClientMessage::AbortedChallenge => {
+                        self.room_state.challenge = None;
+                        self.room_state.challenge_result = None;
+                        true
+                    }
+                    ServerToClientMessage::ChallengeResult(results) => {
+                        self.room_state.challenge_result = Some(results);
+                        true
+                    }
                     _ => false,
                 }
+            }
+            Msg::RejectSecret => {
+                self.send_message(ClientToServerMessage::RejectClue);
+                false
             }
             Msg::WebsocketClosed => {
                 let link = self.link.clone();
@@ -201,6 +223,7 @@ impl Component for Game {
         let vote_kick_callback = self.link.callback(Msg::VoteKick);
         let set_answer_callback = self.link.callback(|(idx, text)| Msg::SetAnswer(idx, text));
         let set_character_callback = self.link.callback(Msg::SetCharacter);
+        let reject_secret_callback = self.link.callback(|_| Msg::RejectSecret);
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
@@ -232,9 +255,9 @@ impl Component for Game {
                                 <IntroduceCharacters player_id=self.player_id players=self.players.clone() set_ready=set_ready_callback/>
                             }
                         }
-                        GameState::Room(_idx) => {
+                        GameState::Room { room_idx, gm, successes, failures } => {
                             html! {
-                                <div/>
+                                <Room player_id=self.player_id players=self.players.clone() room_idx=room_idx gm=gm successes=successes failures=failures state=self.room_state.clone() reject_secret_callback=reject_secret_callback/>
                             }
                         }
                         GameState::FinalBattle => {

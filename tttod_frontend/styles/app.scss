@@ -67,7 +67,7 @@ body {
     }
 }
 
-.title {
+.title, .modal-card-title {
     font-family: 'Adventure';
     &.is-3 {
         color: $primary;

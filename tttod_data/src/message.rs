@@ -35,19 +35,13 @@ pub enum ServerToClientMessage {
     Questions {
         questions: Vec<(String, Option<String>)>,
     },
-    DeclareGM {
-        player_id: Uuid,
-        clue: Option<String>,
+    PushClue {
+        clue: String,
     },
     ClueRejectionRejected,
     ReceivedChallenge(Challenge),
     AbortedChallenge,
-    ChallengeResult {
-        rolls: Vec<u8>,
-        success: bool,
-        possession: bool,
-        can_use_artifact: bool,
-    },
+    ChallengeResult(ChallengeResult),
     EndGame,
 }
 
@@ -61,4 +55,12 @@ impl ServerToClientMessage {
     pub fn into_json(self) -> Result<String, serde_json::error::Error> {
         serde_json::to_string(&self)
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ChallengeResult {
+    pub rolls: Vec<u8>,
+    pub success: bool,
+    pub possession: bool,
+    pub can_use_artifact: bool,
 }

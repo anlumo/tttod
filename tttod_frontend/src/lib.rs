@@ -1,4 +1,5 @@
 #![recursion_limit = "4096"]
+#![allow(clippy::type_complexity)]
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 use yew::prelude::*;

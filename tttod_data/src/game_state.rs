@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
@@ -7,7 +8,12 @@ pub enum GameState {
     DefineEvil,
     CharacterCreation,
     CharacterIntroduction,
-    Room(usize),
+    Room {
+        room_idx: usize,
+        gm: Uuid,
+        successes: usize,
+        failures: usize,
+    },
     FinalBattle,
 }
 
@@ -16,3 +22,6 @@ impl Default for GameState {
         Self::PlayerSelection
     }
 }
+
+pub const SUCCESSES_NEEDED: usize = 3;
+pub const FAILURES_NEEDED: usize = 3;

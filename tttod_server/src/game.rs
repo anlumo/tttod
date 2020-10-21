@@ -8,16 +8,14 @@ use futures::{
 use rand::{seq::SliceRandom, RngCore};
 use std::collections::{HashMap, HashSet};
 use tttod_data::{
-    ArtifactBoon, Attribute, Challenge, ClientToServerMessage, Condition, GameState,
-    MentalCondition, Player, ServerToClientMessage,
+    ArtifactBoon, Attribute, Challenge, ChallengeResult, ClientToServerMessage, Condition,
+    GameState, MentalCondition, Player, ServerToClientMessage, FAILURES_NEEDED, SUCCESSES_NEEDED,
 };
 use uuid::Uuid;
 
 const MIN_PLAYERS: usize = 3;
 const MAX_PLAYERS: usize = 5;
 const QUESTIONS_PER_PLAYER: usize = 2;
-const SUCCESSES_NEEDED: usize = 3;
-const FAILURES_NEEDED: usize = 3;
 
 #[derive(Debug, Clone)]
 pub enum InternalMessage {
@@ -98,7 +96,7 @@ impl GameManager {
             .collect()
     }
     fn push_state_all(&mut self, game_state: GameState) {
-        let known_clues = if let GameState::Room(room_idx) = game_state {
+        let known_clues = if let GameState::Room { room_idx, .. } = game_state {
             self.known_clues(room_idx)
         } else {
             Vec::new()
@@ -600,20 +598,13 @@ impl GameManager {
             let mut successes = 0;
             let mut failures = 0;
             let clue = self.clues[room].1.clone();
-            self.push_state_all(GameState::Room(room));
-            self.send_all_f(|client_id| {
-                Some(if client_id == gm {
-                    ServerToClientMessage::DeclareGM {
-                        player_id: gm,
-                        clue: Some(clue.clone()),
-                    }
-                } else {
-                    ServerToClientMessage::DeclareGM {
-                        player_id: gm,
-                        clue: None,
-                    }
-                })
+            self.push_state_all(GameState::Room {
+                room_idx: room,
+                gm,
+                successes,
+                failures,
             });
+            self.send_to(gm, ServerToClientMessage::PushClue { clue: clue.clone() });
 
             let mut current_challenge: Option<Challenge> = None;
             let mut current_challenge_result: Option<Vec<u8>> = None;
@@ -639,24 +630,22 @@ impl GameManager {
                                 client_idx,
                                 ServerToClientMessage::PushState {
                                     players: all_players.clone(),
-                                    game_state: GameState::Room(room),
+                                    game_state: GameState::Room {
+                                        room_idx: room,
+                                        gm,
+                                        successes,
+                                        failures,
+                                    },
                                     player_kick_votes: HashMap::new(),
                                     known_clues: self.known_clues(room),
                                 },
                             );
-                            let clue = if player_id == gm {
-                                Some(clue.clone())
-                            } else {
-                                None
-                            };
-                            self.send_to_client(
-                                player_id,
-                                client_idx,
-                                ServerToClientMessage::DeclareGM {
-                                    player_id: gm,
-                                    clue,
-                                },
-                            );
+                            if player_id == gm {
+                                self.send_to(
+                                    player_id,
+                                    ServerToClientMessage::PushClue { clue: clue.clone() },
+                                );
+                            }
                             if let Some(current_challenge) = &current_challenge {
                                 if current_challenge.player_id == player_id {
                                     let (artifact_boon, artifact_used) = self
@@ -692,15 +681,19 @@ impl GameManager {
                                         self.send_to_client(
                                             player_id,
                                             client_idx,
-                                            ServerToClientMessage::ChallengeResult {
-                                                possession: Self::possessed_dice(&challenge_result),
-                                                success: Self::check_success(
-                                                    &challenge_result,
-                                                    current_artifact_used,
-                                                ),
-                                                can_use_artifact,
-                                                rolls: challenge_result.clone(),
-                                            },
+                                            ServerToClientMessage::ChallengeResult(
+                                                ChallengeResult {
+                                                    possession: Self::possessed_dice(
+                                                        &challenge_result,
+                                                    ),
+                                                    success: Self::check_success(
+                                                        &challenge_result,
+                                                        current_artifact_used,
+                                                    ),
+                                                    can_use_artifact,
+                                                    rolls: challenge_result.clone(),
+                                                },
+                                            ),
                                         );
                                     }
                                 }
@@ -808,12 +801,14 @@ impl GameManager {
                                             // if it's just about possession, only the reroll artifact can help
                                             current_challenge_result = Some(results.clone());
                                         }
-                                        self.send_all(ServerToClientMessage::ChallengeResult {
-                                            rolls: results,
-                                            success,
-                                            possession,
-                                            can_use_artifact,
-                                        });
+                                        self.send_all(ServerToClientMessage::ChallengeResult(
+                                            ChallengeResult {
+                                                rolls: results,
+                                                success,
+                                                possession,
+                                                can_use_artifact,
+                                            },
+                                        ));
                                     }
                                 }
                             }
@@ -893,14 +888,21 @@ impl GameManager {
                                         current_artifact_used =
                                             Some(player.stats.as_ref().unwrap().artifact_boon);
                                     }
-                                    self.send_all(ServerToClientMessage::ChallengeResult {
-                                        possession,
-                                        rolls: results,
-                                        success,
-                                        can_use_artifact: false,
-                                    });
+                                    self.send_all(ServerToClientMessage::ChallengeResult(
+                                        ChallengeResult {
+                                            possession,
+                                            rolls: results,
+                                            success,
+                                            can_use_artifact: false,
+                                        },
+                                    ));
 
-                                    self.push_state_all(GameState::Room(room));
+                                    self.push_state_all(GameState::Room {
+                                        room_idx: room,
+                                        gm,
+                                        successes,
+                                        failures,
+                                    });
                                 }
                             }
                         }
