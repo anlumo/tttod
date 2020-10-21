@@ -142,6 +142,30 @@ impl GameManager {
             _ => dice.contains(&6),
         }
     }
+    /// Does not check whether the player has already used the artifact previously!
+    fn check_can_use_artifact(dice: &[u8], artifact_boon: ArtifactBoon) -> bool {
+        let success = Self::check_success(dice, None);
+        let possession = Self::possessed_dice(&dice);
+        if success && !possession {
+            false // no point in using it
+        } else if possession && artifact_boon == ArtifactBoon::Reroll {
+            true
+        } else if !success {
+            // check whether the artifact could make a difference
+            match artifact_boon {
+                ArtifactBoon::SuccessOnFive if !dice.contains(&5) => false,
+                ArtifactBoon::SuccessOnDoubles => {
+                    let mut results = dice.to_vec();
+                    results.sort_unstable();
+                    let (_, duplicates) = results.partition_dedup();
+                    !duplicates.is_empty()
+                }
+                _ => true,
+            }
+        } else {
+            false
+        }
+    }
 
     pub async fn run_game(receiver: UnboundedReceiver<InternalMessage>) {
         let mut instance = GameManager {
@@ -593,6 +617,7 @@ impl GameManager {
 
             let mut current_challenge: Option<Challenge> = None;
             let mut current_challenge_result: Option<Vec<u8>> = None;
+            let mut current_artifact_used: Option<ArtifactBoon> = None;
 
             while successes < SUCCESSES_NEEDED {
                 match self.receiver.next().await {
@@ -634,6 +659,19 @@ impl GameManager {
                             );
                             if let Some(current_challenge) = &current_challenge {
                                 if current_challenge.player_id == player_id {
+                                    let (artifact_boon, artifact_used) = self
+                                        .players
+                                        .get(&player_id)
+                                        .map(|(player, _)| {
+                                            (
+                                                player
+                                                    .stats
+                                                    .as_ref()
+                                                    .map(|stats| stats.artifact_boon),
+                                                player.artifact_used,
+                                            )
+                                        })
+                                        .unwrap_or((None, true));
                                     self.send_to_client(
                                         player_id,
                                         client_idx,
@@ -642,6 +680,15 @@ impl GameManager {
                                         ),
                                     );
                                     if let Some(challenge_result) = &current_challenge_result {
+                                        let can_use_artifact = artifact_boon
+                                            .map(|artifact_boon| {
+                                                !artifact_used
+                                                    && Self::check_can_use_artifact(
+                                                        &challenge_result,
+                                                        artifact_boon,
+                                                    )
+                                            })
+                                            .unwrap_or(false);
                                         self.send_to_client(
                                             player_id,
                                             client_idx,
@@ -649,9 +696,9 @@ impl GameManager {
                                                 possession: Self::possessed_dice(&challenge_result),
                                                 success: Self::check_success(
                                                     &challenge_result,
-                                                    None,
-                                                ), // TODO: might have used the artifact here!
-                                                can_use_artifact: true, // TODO: might not be true!
+                                                    current_artifact_used,
+                                                ),
+                                                can_use_artifact,
                                                 rolls: challenge_result.clone(),
                                             },
                                         );
@@ -719,30 +766,37 @@ impl GameManager {
                                         };
                                         let mut can_use_artifact = false;
                                         let results = Self::roll_d6(dice_count as _);
-                                        let success = results.contains(&6);
-                                        if success {
+                                        let success = Self::check_success(&results, None);
+                                        let possession = Self::possessed_dice(&results);
+                                        if success && !possession {
                                             successes += 1;
                                             current_challenge = None;
                                         } else if !player.artifact_used {
-                                            // check whether the artifact could make a difference
-                                            match player.stats.as_ref().unwrap().artifact_boon {
-                                                ArtifactBoon::SuccessOnFive
-                                                    if !results.contains(&5) =>
-                                                {
-                                                    // can't use artifact
-                                                }
-                                                ArtifactBoon::SuccessOnDoubles => {
-                                                    let mut results = results.clone();
-                                                    results.sort_unstable();
-                                                    let (_, duplicates) = results.partition_dedup();
-                                                    can_use_artifact = !duplicates.is_empty();
-                                                }
-                                                _ => {
-                                                    can_use_artifact = true;
+                                            let artifact_boon =
+                                                player.stats.as_ref().unwrap().artifact_boon;
+                                            if possession && artifact_boon == ArtifactBoon::Reroll {
+                                                can_use_artifact = true;
+                                            } else if !success {
+                                                // check whether the artifact could make a difference
+                                                match artifact_boon {
+                                                    ArtifactBoon::SuccessOnFive
+                                                        if !results.contains(&5) =>
+                                                    {
+                                                        // can't use artifact
+                                                    }
+                                                    ArtifactBoon::SuccessOnDoubles => {
+                                                        let mut results = results.clone();
+                                                        results.sort_unstable();
+                                                        let (_, duplicates) =
+                                                            results.partition_dedup();
+                                                        can_use_artifact = !duplicates.is_empty();
+                                                    }
+                                                    _ => {
+                                                        can_use_artifact = true;
+                                                    }
                                                 }
                                             }
                                         }
-                                        let possession = Self::possessed_dice(&results);
                                         if !success
                                             || (!player.artifact_used
                                                 && player.stats.as_ref().unwrap().artifact_boon
@@ -776,10 +830,25 @@ impl GameManager {
                                 self.send_to(player_id, ServerToClientMessage::AbortedChallenge);
                             }
                         }
-                        ClientToServerMessage::AcceptFate if current_challenge_result.is_some() => {
-                            failures += 1;
-                            current_challenge_result = None;
-                            current_challenge = None;
+                        ClientToServerMessage::AcceptFate => {
+                            if let Some(current_challenge_result) = current_challenge_result.take()
+                            {
+                                if Self::check_success(
+                                    &current_challenge_result,
+                                    current_artifact_used.take(),
+                                ) {
+                                    successes += 1;
+                                } else {
+                                    failures += 1;
+                                }
+                                if Self::possessed_dice(&current_challenge_result) {
+                                    if let Some((player, _)) = self.players.get_mut(&player_id) {
+                                        player.mental_condition =
+                                            player.mental_condition.take_hit();
+                                    }
+                                }
+                                current_challenge = None;
+                            }
                         }
                         ClientToServerMessage::TakeWound => {
                             if let Some((player, _)) = self.players.get_mut(&player_id) {
@@ -791,6 +860,7 @@ impl GameManager {
                                     }
                                     successes += 1;
                                     current_challenge = None;
+                                    current_artifact_used = None;
                                 }
                             }
                         }
@@ -814,19 +884,21 @@ impl GameManager {
                                         &results,
                                         Some(player.stats.as_ref().unwrap().artifact_boon),
                                     );
+                                    let possession = Self::possessed_dice(&results);
+                                    if success {
+                                        successes += 1;
+                                        current_challenge_result = None;
+                                        current_challenge = None;
+                                    } else {
+                                        current_artifact_used =
+                                            Some(player.stats.as_ref().unwrap().artifact_boon);
+                                    }
                                     self.send_all(ServerToClientMessage::ChallengeResult {
-                                        possession: Self::possessed_dice(&results),
+                                        possession,
                                         rolls: results,
                                         success,
                                         can_use_artifact: false,
                                     });
-                                    if success {
-                                        successes += 1;
-                                    } else {
-                                        failures += 1;
-                                    }
-                                    current_challenge_result = None;
-                                    current_challenge = None;
 
                                     self.push_state_all(GameState::Room(room));
                                 }

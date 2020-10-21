@@ -138,6 +138,7 @@ impl Component for Game {
                         players,
                         game_state,
                         player_kick_votes,
+                        known_clues,
                     } => {
                         self.state = game_state;
                         self.players = players;
@@ -155,6 +156,7 @@ impl Component for Game {
                             .collect();
                         true
                     }
+                    _ => false,
                 }
             }
             Msg::WebsocketClosed => {
