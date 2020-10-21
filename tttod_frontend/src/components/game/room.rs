@@ -130,26 +130,84 @@ impl Component for Room {
                             }).map(|(player_id, player)| {
                                 let update_speciality_applies_callback = yew::Callback::noop();
                                 let update_reputation_applies_callback = yew::Callback::noop();
+                                let update_attribute_callback = yew::Callback::noop();
                                 html! {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
                                         <CharacterViewer player=player.clone() header={
+                                            let stats = player.stats.as_ref().unwrap();
                                             html! {
                                                 <ybc::ModalCard id={format!("challenge-{}", player_id)} trigger={
                                                     html! {
                                                         <ybc::Button classes="mr-2">{"Challenge"}</ybc::Button>
                                                     }
-                                                } title=format!("Challenge Dr. {} (PhD)", player.name) body={
+                                                } title=format!("Challenge Dr. {} (PhD)", stats.name) body={
                                                     html! {
                                                         <>
-                                                            {"The player has to argue how these element"}
-                                                            <ybc::Label classes="checkbox">
-                                                                <ybc::Checkbox name="speciality_applies" checked=false update=update_speciality_applies_callback/>
-                                                                {format!("The speciality of {} applies.", player.stats.as_ref().unwrap().speciality)}
-                                                            </ybc::Label>
-                                                            <ybc::Label classes="checkbox">
-                                                                <ybc::Checkbox name="reputation_applies" checked=false update=update_reputation_applies_callback/>
-                                                                {format!("The character is living up to the reputation of {}.", player.stats.as_ref().unwrap().reputation)}
-                                                            </ybc::Label>
+                                                            <div class="block is-size-5">
+                                                                {"The player has to argue how these elements apply to the challenge:"}
+                                                                <div class="control is-size-5">
+                                                                    <ybc::Checkbox name="speciality_applies" checked=false update=update_speciality_applies_callback>
+                                                                        {" The speciality of "}
+                                                                        <span class="has-text-weight-bold">
+                                                                            {format!("{}", stats.speciality)}
+                                                                        </span>
+                                                                        {" applies."}
+                                                                    </ybc::Checkbox>
+                                                                </div>
+                                                                <div class="control is-size-5">
+                                                                    <ybc::Checkbox name="reputation_applies" checked=false update=update_reputation_applies_callback>
+                                                                        {" The character is living up to the reputation of "}
+                                                                        <span class="has-text-weight-bold">
+                                                                            {format!("{}", stats.reputation)}
+                                                                        </span>
+                                                                        {"."}
+                                                                    </ybc::Checkbox>
+                                                                </div>
+                                                            </div>
+                                                            <ybc::Tile vertical=false>
+                                                                <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
+                                                                    <ybc::Card classes="attribute-card">
+                                                                        <ybc::CardHeader>
+                                                                            <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="heroic" checked_value=Some("heroic") update=update_attribute_callback.clone()>
+                                                                                <span class="radio-in-card">{"Heroic"}</span>
+                                                                            </ybc::Radio>
+                                                                        </ybc::CardHeader>
+                                                                        <div class="card-content">
+                                                                            <ybc::Content>
+                                                                                {"Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil."}
+                                                                            </ybc::Content>
+                                                                        </div>
+                                                                    </ybc::Card>
+                                                                </ybc::Tile>
+                                                                <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
+                                                                    <ybc::Card classes="attribute-card">
+                                                                        <ybc::CardHeader>
+                                                                            <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="booksmart" checked_value=Some("heroic") update=update_attribute_callback.clone()>
+                                                                                <span class="radio-in-card">{"Booksmart"}</span>
+                                                                            </ybc::Radio>
+                                                                        </ybc::CardHeader>
+                                                                        <div class="card-content">
+                                                                            <ybc::Content>
+                                                                                {"Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge."}
+                                                                            </ybc::Content>
+                                                                        </div>
+                                                                    </ybc::Card>
+                                                                </ybc::Tile>
+                                                                <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
+                                                                    <ybc::Card classes="attribute-card">
+                                                                        <ybc::CardHeader>
+                                                                            <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="streetwise" checked_value=Some("heroic") update=update_attribute_callback.clone()>
+                                                                                <span class="radio-in-card">{"Streetwise"}</span>
+                                                                            </ybc::Radio>
+                                                                        </ybc::CardHeader>
+                                                                        <div class="card-content">
+                                                                            <ybc::Content>
+                                                                                {"Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics."}
+                                                                            </ybc::Content>
+                                                                        </div>
+                                                                    </ybc::Card>
+                                                                </ybc::Tile>
+                                                            </ybc::Tile>
                                                         </>
                                                     }
                                                 } footer={
