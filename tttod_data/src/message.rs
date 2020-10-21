@@ -1,4 +1,4 @@
-use crate::{Attribute, GameState, Player, PlayerStats};
+use crate::{Challenge, GameState, Player, PlayerStats};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
@@ -6,28 +6,19 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "cmd", rename_all = "snake_case")]
 pub enum ClientToServerMessage {
-    SetPlayerName {
-        name: String,
-    },
+    SetPlayerName { name: String },
     ReadyForGame,
-    VoteKickPlayer {
-        player_id: Uuid,
-    },
-    RevertVoteKickPlayer {
-        player_id: Uuid,
-    },
-    Answers {
-        answers: Vec<String>,
-    },
-    SetCharacter {
-        stats: PlayerStats,
-    },
-    Challenge {
-        player_id: Uuid,
-        attribute: Attribute,
-        speciality_applies: bool,
-        reputation_applies: bool,
-    },
+    VoteKickPlayer { player_id: Uuid },
+    RevertVoteKickPlayer { player_id: Uuid },
+    Answers { answers: Vec<String> },
+    SetCharacter { stats: PlayerStats },
+    RejectClue,
+    Challenge(Challenge),
+    ChallengeAccepted,
+    ChallengeRejected,
+    UseArtifact,
+    TakeWound,
+    AcceptFate,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -39,6 +30,7 @@ pub enum ServerToClientMessage {
         players: HashMap<Uuid, Player>,
         game_state: GameState,
         player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
+        known_clues: Vec<String>,
     },
     Questions {
         questions: Vec<(String, Option<String>)>,
@@ -46,6 +38,15 @@ pub enum ServerToClientMessage {
     DeclareGM {
         player_id: Uuid,
         clue: Option<String>,
+    },
+    ClueRejectionRejected,
+    ReceivedChallenge(Challenge),
+    AbortedChallenge,
+    ChallengeResult {
+        rolls: Vec<u8>,
+        success: bool,
+        possession: bool,
+        can_use_artifact: bool,
     },
     EndGame,
 }

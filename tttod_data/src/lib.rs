@@ -1,6 +1,11 @@
 mod player;
-pub use player::{ArtifactBoon, Attribute, Player, PlayerStats, Reputation, Speciality};
+pub use player::{
+    ArtifactBoon, Attribute, Condition, MentalCondition, Player, PlayerStats, Reputation,
+    Speciality,
+};
 mod message;
 pub use message::{ClientToServerMessage, ServerToClientMessage};
 mod game_state;
 pub use game_state::GameState;
+mod challenge;
+pub use challenge::Challenge;

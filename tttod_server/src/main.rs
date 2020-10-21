@@ -1,5 +1,5 @@
-#![feature(drain_filter, map_into_keys_values)]
-#![allow(clippy::single_match)]
+#![feature(drain_filter, map_into_keys_values, slice_partition_dedup)]
+#![allow(clippy::single_match, clippy::naive_bytecount)]
 use actix_web::{get, middleware, App, HttpServer, Responder};
 use std::{
     collections::HashMap,

@@ -52,6 +52,16 @@ impl Default for Condition {
     }
 }
 
+impl Condition {
+    pub fn take_hit(self) -> Self {
+        match self {
+            Self::Hale => Self::Wounded,
+            Self::Wounded => Self::Critical,
+            _ => Self::Dead,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum MentalCondition {
@@ -63,6 +73,15 @@ pub enum MentalCondition {
 impl Default for MentalCondition {
     fn default() -> Self {
         Self::Hale
+    }
+}
+
+impl MentalCondition {
+    pub fn take_hit(self) -> Self {
+        match self {
+            Self::Hale => Self::Resisted,
+            _ => Self::Possessed,
+        }
     }
 }
 
