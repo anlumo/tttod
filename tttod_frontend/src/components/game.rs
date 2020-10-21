@@ -12,6 +12,8 @@ mod character_viewer;
 pub use character_viewer::CharacterViewer;
 mod room;
 pub use room::{Room, RoomState};
+mod challenge_dialog;
+pub use challenge_dialog::ChallengeDialog;
 
 use futures::{
     sink::SinkExt,
