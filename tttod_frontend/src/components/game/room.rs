@@ -1,4 +1,4 @@
-use super::PlayerList;
+use super::{CharacterViewer, PlayerList};
 use crate::{components::Icon, IconName};
 use std::collections::HashMap;
 use tttod_data::{Challenge, ChallengeResult, Player, FAILURES_NEEDED, SUCCESSES_NEEDED};
@@ -81,7 +81,8 @@ impl Component for Room {
         log::debug!("gm: {:?}", self.props.gm == self.props.player_id);
         let dismiss_modal = self.link.callback(|_| Msg::DismissGMModal);
         let reject_secret_handler = self.link.callback(|_| Msg::RejectSecret);
-        // let player = self.props.players.get(&self.props.player_id);
+        let is_gm = self.props.gm == self.props.player_id;
+        let player = self.props.players.get(&self.props.player_id);
         html! {
             <ybc::Tile vertical=true ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
@@ -118,10 +119,29 @@ impl Component for Room {
                         </div>
                     </div>
                 </ybc::Tile>
-                // <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Twelve>
-                // </ybc::Tile>
+                <ybc::Tile vertical=true ctx=TileCtx::Parent size=TileSize::Twelve>
+                    {
+                        if is_gm {
+                            self.props.players.iter().filter(|(&player_id, _)| player_id != self.props.player_id).map(|(_, player)| {
+                                html! {
+                                    <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
+                                        <CharacterViewer player=player.clone()/>
+                                    </ybc::Tile>
+                                }
+                            }).collect()
+                        } else if let Some(player) = player {
+                            html! {
+                                <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
+                                    <CharacterViewer player=player.clone()/>
+                                </ybc::Tile>
+                            }
+                        } else {
+                            html! {}
+                        }
+                    }
+                </ybc::Tile>
                 {
-                    if self.props.gm == self.props.player_id {
+                    if is_gm {
                         html! {
                             <ybc::ModalCard id="gm-notification" trigger={
                                 html! {
