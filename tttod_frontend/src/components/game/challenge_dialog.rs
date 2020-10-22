@@ -103,7 +103,7 @@ impl Component for ChallengeDialog {
         html! {
             <ybc::ModalCard id={format!("offer-challenge-{}", player_id)} trigger={
                 html! {
-                    <ybc::Button classes="mr-2">{"Challenge"}</ybc::Button>
+                    <ybc::Button classes="mr-2"><Icon classes="icon" name=IconName::Dice/><span>{"Challenge"}</span></ybc::Button>
                 }
             } title=format!("Challenge Dr. {} (PhD)", stats.name) body={
                 html! {

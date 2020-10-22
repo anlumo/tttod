@@ -231,7 +231,7 @@ impl Component for Room {
                                                 html! {}
                                             }
                                         }
-                                        <ybc::Button onclick=dismiss_modal.clone()>{"My room is ready!"}</ybc::Button>
+                                        <ybc::Button onclick=dismiss_modal.clone()><Icon classes="icon" name=IconName::Gopuram/><span>{"My room is ready!"}</span></ybc::Button>
                                     </>
                                 }
                             }/>

@@ -1,8 +1,6 @@
 use crate::{components::Icon, IconName};
 use tttod_data::{Attribute, Challenge, Player};
-use uuid::Uuid;
 use wasm_bindgen::JsCast;
-use ybc::{TileCtx, TileSize};
 use yew::prelude::*;
 
 pub struct OfferChallenge {
@@ -155,8 +153,8 @@ impl Component for OfferChallenge {
             } footer={
                 html! {
                     <>
-                        <ybc::Button onclick=abort_challenge_callback>{"Refuse"}</ybc::Button>
-                        <ybc::Button classes="has-background-danger" onclick=accept_challenge_callback>{"Accept Challenge"}</ybc::Button>
+                        <ybc::Button onclick=abort_challenge_callback><Icon classes="icon" name=IconName::Times/><span>{"Refuse"}</span></ybc::Button>
+                        <ybc::Button classes="has-background-danger" onclick=accept_challenge_callback><Icon classes="icon" name=IconName::Dice/><span>{"Accept Challenge"}</span></ybc::Button>
                     </>
                 }
             }/>
