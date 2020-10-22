@@ -911,6 +911,24 @@ impl GameManager {
                                 }
                             }
                         }
+                        ClientToServerMessage::FakeFailure => {
+                            failures += 1;
+                            self.push_state_all(GameState::Room {
+                                room_idx: room,
+                                gm,
+                                successes,
+                                failures,
+                            });
+                        }
+                        ClientToServerMessage::FakeSuccess => {
+                            successes += 1;
+                            self.push_state_all(GameState::Room {
+                                room_idx: room,
+                                gm,
+                                successes,
+                                failures,
+                            });
+                        }
                         _ => {}
                     },
                 }

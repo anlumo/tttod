@@ -73,6 +73,9 @@ pub enum Msg {
     UseArtifact,
     TakeWound,
     AcceptFate,
+    // DEBUGGING ONLY
+    FakeFailure,
+    FakeSuccess,
 }
 
 fn local_storage() -> web_sys::Storage {
@@ -167,6 +170,14 @@ impl Component for Game {
             }
             Msg::AcceptFate => {
                 self.send_message(ClientToServerMessage::AcceptFate);
+                false
+            }
+            Msg::FakeSuccess => {
+                self.send_message(ClientToServerMessage::FakeSuccess);
+                false
+            }
+            Msg::FakeFailure => {
+                self.send_message(ClientToServerMessage::FakeFailure);
                 false
             }
             Msg::SetWebsocket(meta, sink) => {
@@ -271,6 +282,9 @@ impl Component for Game {
         let take_wound_callback = self.link.callback(|_| Msg::TakeWound);
         let accept_fate_callback = self.link.callback(|_| Msg::AcceptFate);
 
+        let fake_failure_callback = self.link.callback(|_| Msg::FakeFailure);
+        let fake_success_callback = self.link.callback(|_| Msg::FakeSuccess);
+
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
@@ -336,6 +350,8 @@ impl Component for Game {
                     }
                 }
             }
+            <ybc::Button onclick=fake_failure_callback>{"Fake Failure"}</ybc::Button>
+            <ybc::Button onclick=fake_success_callback>{"Fake Success"}</ybc::Button>
             </ybc::Tile>
         }
     }

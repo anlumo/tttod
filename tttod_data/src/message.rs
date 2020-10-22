@@ -19,6 +19,9 @@ pub enum ClientToServerMessage {
     UseArtifact,
     TakeWound,
     AcceptFate,
+    // DEBUGGING ONLY!
+    FakeFailure,
+    FakeSuccess,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
