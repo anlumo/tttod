@@ -587,9 +587,6 @@ impl GameManager {
         Ok(())
     }
     async fn enter_temple(&mut self) -> Result<bool, Error> {
-        for (player, _) in self.players.values_mut() {
-            player.ready = false;
-        }
         let mut rng = rand::thread_rng();
         let mut gms: Vec<Uuid> = self.players.keys().cloned().collect();
         gms.shuffle(&mut rng);
@@ -598,6 +595,9 @@ impl GameManager {
             let mut successes = 0;
             let mut failures = 0;
             let mut clue = self.clues[room].1.clone();
+            for (&player_id, (player, _)) in self.players.iter_mut() {
+                player.ready = player_id != gm;
+            }
             self.push_state_all(GameState::Room {
                 room_idx: room,
                 gm,
