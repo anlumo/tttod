@@ -597,7 +597,7 @@ impl GameManager {
         for (room, gm) in gms.into_iter().enumerate() {
             let mut successes = 0;
             let mut failures = 0;
-            let clue = self.clues[room].1.clone();
+            let mut clue = self.clues[room].1.clone();
             self.push_state_all(GameState::Room {
                 room_idx: room,
                 gm,
@@ -715,6 +715,11 @@ impl GameManager {
                             if room > 0 && self.clues.len() > self.players.len() {
                                 // clue doesn't fit with existing lore, remove it
                                 self.clues.remove(room);
+                                clue = self.clues[room].1.clone();
+                                self.send_to(
+                                    gm,
+                                    ServerToClientMessage::PushClue { clue: clue.clone() },
+                                );
                             } else {
                                 // either there's no existing lore yet, or we don't have any more clues left to discard
                                 self.send_to(
