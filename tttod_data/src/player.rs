@@ -92,6 +92,28 @@ pub enum Attribute {
     Streetwise,
 }
 
+impl Attribute {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Attribute::Heroic => "heroic",
+            Attribute::Booksmart => "booksmart",
+            Attribute::Streetwise => "streetwise",
+        }
+    }
+}
+
+impl std::str::FromStr for Attribute {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "heroic" => Ok(Self::Heroic),
+            "booksmart" => Ok(Self::Booksmart),
+            "streetwise" => Ok(Self::Streetwise),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerStats {
     pub name: String,

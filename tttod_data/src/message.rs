@@ -13,7 +13,7 @@ pub enum ClientToServerMessage {
     Answers { answers: Vec<String> },
     SetCharacter { stats: PlayerStats },
     RejectClue,
-    Challenge(Challenge),
+    OfferChallenge { challenge: Challenge },
     ChallengeAccepted,
     ChallengeRejected,
     UseArtifact,

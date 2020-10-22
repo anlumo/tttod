@@ -24,7 +24,9 @@ use std::{
     collections::{HashMap, HashSet},
     rc::Rc,
 };
-use tttod_data::{ClientToServerMessage, GameState, Player, PlayerStats, ServerToClientMessage};
+use tttod_data::{
+    Challenge, ClientToServerMessage, GameState, Player, PlayerStats, ServerToClientMessage,
+};
 use uuid::Uuid;
 use wasm_bindgen::{closure::Closure, JsCast};
 use wasm_bindgen_futures::spawn_local;
@@ -60,6 +62,7 @@ pub enum Msg {
     ConnectWebsocket,
     ReceivedMessage(ServerToClientMessage),
     RejectSecret,
+    OfferChallenge(Challenge),
 }
 
 fn local_storage() -> web_sys::Storage {
@@ -129,6 +132,10 @@ impl Component for Game {
             }
             Msg::SetCharacter(stats) => {
                 self.send_message(ClientToServerMessage::SetCharacter { stats });
+                false
+            }
+            Msg::OfferChallenge(challenge) => {
+                self.send_message(ClientToServerMessage::OfferChallenge { challenge });
                 false
             }
             Msg::SetWebsocket(meta, sink) => {
@@ -258,8 +265,9 @@ impl Component for Game {
                             }
                         }
                         GameState::Room { room_idx, gm, successes, failures } => {
+                            let offer_challenge_callback = self.link.callback(Msg::OfferChallenge);
                             html! {
-                                <Room player_id=self.player_id players=self.players.clone() room_idx=room_idx gm=gm successes=successes failures=failures state=self.room_state.clone() reject_secret_callback=reject_secret_callback/>
+                                <Room player_id=self.player_id players=self.players.clone() room_idx=room_idx gm=gm successes=successes failures=failures state=self.room_state.clone() reject_secret_callback=reject_secret_callback offer_challenge=offer_challenge_callback/>
                             }
                         }
                         GameState::FinalBattle => {
@@ -312,7 +320,7 @@ impl Game {
                             }
                         }
                     } else {
-                        log::error!("Unkonwn binary message received");
+                        log::error!("Unknown binary message received");
                     }
                 }
                 log::warn!("Websocket connection lost!");

@@ -723,7 +723,7 @@ impl GameManager {
                                 );
                             }
                         }
-                        ClientToServerMessage::Challenge(challenge)
+                        ClientToServerMessage::OfferChallenge { challenge }
                             if player_id == gm && challenge.player_id != gm =>
                         {
                             if let Some((player, _)) = self.players.get(&player_id) {

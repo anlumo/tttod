@@ -1,4 +1,5 @@
-use tttod_data::Player;
+use std::str::FromStr;
+use tttod_data::{Attribute, Challenge, Player};
 use uuid::Uuid;
 use ybc::{TileCtx, TileSize};
 use yew::prelude::*;
@@ -7,18 +8,24 @@ pub struct ChallengeDialog {
     link: ComponentLink<Self>,
     props: Props,
     modal_bridge: yew::agent::Dispatcher<ybc::ModalCloser>,
+    speciality_applies: bool,
+    reputation_applies: bool,
+    attribute: Attribute,
 }
 
 #[derive(Debug, Clone, Properties)]
 pub struct Props {
     pub player_id: Uuid,
     pub player: Player,
-    pub offer_challenge: Callback<()>,
+    pub offer_challenge: Callback<Challenge>,
 }
 
 pub enum Msg {
     OfferChallenge,
     Abort,
+    UpdateAttribute(String),
+    UpdateSpeciality(bool),
+    UpdateReputation(bool),
 }
 
 impl Component for ChallengeDialog {
@@ -29,13 +36,21 @@ impl Component for ChallengeDialog {
             link,
             props,
             modal_bridge: ybc::ModalCloser::dispatcher(),
+            speciality_applies: false,
+            reputation_applies: false,
+            attribute: Attribute::Heroic,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::OfferChallenge => {
-                self.props.offer_challenge.emit(());
+                self.props.offer_challenge.emit(Challenge {
+                    player_id: self.props.player_id,
+                    attribute: self.attribute,
+                    speciality_applies: self.speciality_applies,
+                    reputation_applies: self.reputation_applies,
+                });
                 self.modal_bridge.send(ybc::ModalCloseMsg(format!(
                     "offer-challenge-{}",
                     self.props.player_id
@@ -49,6 +64,22 @@ impl Component for ChallengeDialog {
                 )));
                 true
             }
+            Msg::UpdateAttribute(attribute) => {
+                if let Ok(attribute) = Attribute::from_str(&attribute) {
+                    self.attribute = attribute;
+                    true
+                } else {
+                    false
+                }
+            }
+            Msg::UpdateSpeciality(flag) => {
+                self.speciality_applies = flag;
+                true
+            }
+            Msg::UpdateReputation(flag) => {
+                self.reputation_applies = flag;
+                true
+            }
         }
     }
 
@@ -60,11 +91,14 @@ impl Component for ChallengeDialog {
     fn view(&self) -> Html {
         let offer_challenge_callback = self.link.callback(|_| Msg::OfferChallenge);
         let abort_challenge_callback = self.link.callback(|_| Msg::Abort);
-        let update_speciality_applies_callback = yew::Callback::noop();
-        let update_reputation_applies_callback = yew::Callback::noop();
-        let update_attribute_callback = yew::Callback::noop();
+        let update_speciality_applies_callback = self.link.callback(Msg::UpdateSpeciality);
+        let update_reputation_applies_callback = self.link.callback(Msg::UpdateReputation);
+        let update_attribute_callback = self.link.callback(Msg::UpdateAttribute);
+
         let stats = self.props.player.stats.as_ref().unwrap();
         let player_id = self.props.player_id;
+        let selected_attribute = self.attribute.as_str();
+
         html! {
             <ybc::ModalCard id={format!("offer-challenge-{}", player_id)} trigger={
                 html! {
@@ -76,7 +110,7 @@ impl Component for ChallengeDialog {
                         <div class="block is-size-5">
                             {"The player has to argue how these elements apply to the challenge:"}
                             <div class="control is-size-5">
-                                <ybc::Checkbox name="speciality_applies" checked=false update=update_speciality_applies_callback>
+                                <ybc::Checkbox name="speciality_applies" checked=self.speciality_applies update=update_speciality_applies_callback>
                                     {" The speciality of "}
                                     <span class="has-text-weight-bold">
                                         {format!("{}", stats.speciality)}
@@ -85,7 +119,7 @@ impl Component for ChallengeDialog {
                                 </ybc::Checkbox>
                             </div>
                             <div class="control is-size-5">
-                                <ybc::Checkbox name="reputation_applies" checked=false update=update_reputation_applies_callback>
+                                <ybc::Checkbox name="reputation_applies" checked=self.reputation_applies update=update_reputation_applies_callback>
                                     {" The character is living up to the reputation of "}
                                     <span class="has-text-weight-bold">
                                         {format!("{}", stats.reputation)}
@@ -98,7 +132,7 @@ impl Component for ChallengeDialog {
                             <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
                                 <ybc::Card classes="attribute-card">
                                     <ybc::CardHeader>
-                                        <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="heroic" checked_value=Some("heroic") update=update_attribute_callback.clone()>
+                                        <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="heroic" checked_value=Some(selected_attribute) update=update_attribute_callback.clone()>
                                             <span class="ml-2">{"Heroic"}</span>
                                         </ybc::Radio>
                                     </ybc::CardHeader>
@@ -112,7 +146,7 @@ impl Component for ChallengeDialog {
                             <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
                                 <ybc::Card classes="attribute-card">
                                     <ybc::CardHeader>
-                                        <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="booksmart" checked_value=Some("heroic") update=update_attribute_callback.clone()>
+                                        <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="booksmart" checked_value=Some(selected_attribute) update=update_attribute_callback.clone()>
                                             <span class="ml-2">{"Booksmart"}</span>
                                         </ybc::Radio>
                                     </ybc::CardHeader>
@@ -126,7 +160,7 @@ impl Component for ChallengeDialog {
                             <ybc::Tile ctx=TileCtx::Child size=TileSize::Four>
                                 <ybc::Card classes="attribute-card">
                                     <ybc::CardHeader>
-                                        <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="streetwise" checked_value=Some("heroic") update=update_attribute_callback.clone()>
+                                        <ybc::Radio classes="card-header-title is-size-5" name=format!("attribute-{}", player_id) value="streetwise" checked_value=Some(selected_attribute) update=update_attribute_callback.clone()>
                                             <span class="ml-2">{"Streetwise"}</span>
                                         </ybc::Radio>
                                     </ybc::CardHeader>
