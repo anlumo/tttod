@@ -128,7 +128,7 @@ impl Component for Room {
                         </div>
                     </div>
                 </ybc::Tile>
-                <ybc::Tile vertical=true ctx=TileCtx::Parent size=TileSize::Twelve>
+                <ybc::Tile vertical=false ctx=TileCtx::Parent size=TileSize::Twelve>
                     {
                         if is_gm {
                             self.props.players.iter().filter(|(&player_id, player)| {
@@ -137,7 +137,7 @@ impl Component for Room {
                                 let offer_challenge_callback = self.link.callback(Msg::OfferChallenge);
                                 html! {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
-                                        <CharacterViewer player=player.clone() header={
+                                        <CharacterViewer classes="m-2" player=player.clone() header={
                                             html! {
                                                 <ChallengeDialog player_id=player_id player=player offer_challenge=offer_challenge_callback/>
                                             }
