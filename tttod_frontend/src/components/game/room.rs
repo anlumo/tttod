@@ -261,7 +261,7 @@ impl Component for Room {
                                         {
                                             if self.props.room_idx > 0 {
                                                 html! {
-                                                    <ybc::Button loading=self.rejected_secret.is_some() onclick=reject_secret_handler>{"This clue conficts with established lore"}</ybc::Button>
+                                                    <ybc::Button classes="is-danger is-light" loading=self.rejected_secret.is_some() onclick=reject_secret_handler><Icon classes="icon" name=IconName::Times/><span>{"This secret conficts with established lore"}</span></ybc::Button>
                                                 }
                                             } else {
                                                 html! {}
