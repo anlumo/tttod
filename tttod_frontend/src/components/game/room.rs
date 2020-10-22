@@ -97,12 +97,41 @@ impl Component for Room {
             <ybc::Tile vertical=true ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
                     <ybc::Tile ctx=TileCtx::Child size=TileSize::Nine>
-                        <ybc::Title size=HeaderSize::Is1>{format!("Room {} of {}", self.props.room_idx + 1, self.props.players.len())}</ybc::Title>
+                        <ybc::Title size=HeaderSize::Is1>
+                            {
+                                if is_gm {
+                                    html! {
+                                        <span title="You are the GM here!">
+                                            <Icon classes="mr-3 has-text-primary gm-icon" name=IconName::BookReader/>
+                                        </span>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            }
+                            {format!("Room {} of {}", self.props.room_idx + 1, self.props.players.len())}
+                        </ybc::Title>
                     </ybc::Tile>
                     <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Three>
                         <PlayerList player_id=self.props.player_id players=&self.props.players/>
                     </ybc::Tile>
                 </ybc::Tile>
+                {
+                    if let Some(clue) = &self.props.state.clue {
+                        html! {
+                            <ybc::Tile vertical=false ctx=TileCtx::Child>
+                                <ybc::Box classes="m-4 has-background-primary-light">
+                                    <ybc::Title size=HeaderSize::Is5>{"Secret for This Room"}</ybc::Title>
+                                    <p>{
+                                        clue
+                                    }</p>
+                                </ybc::Box>
+                            </ybc::Tile>
+                        }
+                    } else {
+                        html! {}
+                    }
+                }
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Three>
                         <ybc::Table classes="success-table" fullwidth=true>
