@@ -32,6 +32,9 @@ pub struct Props {
     pub accept_challenge: yew::Callback<()>,
     pub reject_challenge: yew::Callback<()>,
     pub offer_challenge: yew::Callback<Challenge>,
+    pub use_artifact: yew::Callback<()>,
+    pub take_wound: yew::Callback<()>,
+    pub accept_fate: yew::Callback<()>,
 }
 
 pub enum Msg {
@@ -247,7 +250,13 @@ impl Component for Room {
                                         html! {}
                                     }
                                 }
-                                <ChallengeResultDialog challenge_result=self.props.state.challenge_result.clone() player=player.clone()/>
+                                <ChallengeResultDialog
+                                    challenge_result=self.props.state.challenge_result.clone()
+                                    player=player.clone()
+                                    use_artifact=self.props.use_artifact.clone()
+                                    take_wound=self.props.take_wound.clone()
+                                    accept_fate=self.props.accept_fate.clone()
+                                />
                             </>
                         }
                     } else {

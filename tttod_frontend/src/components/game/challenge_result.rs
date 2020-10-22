@@ -1,8 +1,6 @@
 use crate::{components::Icon, IconName};
-use tttod_data::{ArtifactBoon, Attribute, ChallengeResult, MentalCondition, Player};
-use uuid::Uuid;
+use tttod_data::{ArtifactBoon, ChallengeResult, MentalCondition, Player};
 use wasm_bindgen::JsCast;
-use ybc::{TileCtx, TileSize};
 use yew::prelude::*;
 
 pub struct ChallengeResultDialog {
@@ -16,11 +14,15 @@ pub struct ChallengeResultDialog {
 pub struct Props {
     pub player: Player,
     pub challenge_result: Option<ChallengeResult>,
+    pub use_artifact: yew::Callback<()>,
+    pub take_wound: yew::Callback<()>,
+    pub accept_fate: yew::Callback<()>,
 }
 
 pub enum Msg {
-    AcceptChallenge,
-    Abort,
+    AcceptFate,
+    UseArtifact,
+    TakeWound,
 }
 
 impl Component for ChallengeResultDialog {
@@ -36,9 +38,24 @@ impl Component for ChallengeResultDialog {
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        // match msg {
-        // }
-        false
+        match msg {
+            Msg::AcceptFate => {
+                self.props.accept_fate.emit(());
+                self.modal_bridge
+                    .send(ybc::ModalCloseMsg("challenge-result".to_owned()));
+            }
+            Msg::UseArtifact => {
+                self.props.use_artifact.emit(());
+                self.modal_bridge
+                    .send(ybc::ModalCloseMsg("challenge-result".to_owned()));
+            }
+            Msg::TakeWound => {
+                self.props.take_wound.emit(());
+                self.modal_bridge
+                    .send(ybc::ModalCloseMsg("challenge-result".to_owned()));
+            }
+        }
+        true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -164,22 +181,26 @@ impl Component for ChallengeResultDialog {
                 }
             } footer={
                 if let Some(challenge_result) = &self.props.challenge_result {
+                    let use_artifact = self.link.callback(|_| Msg::UseArtifact);
+                    let take_wound = self.link.callback(|_| Msg::TakeWound);
+                    let accept_fate = self.link.callback(|_| Msg::AcceptFate);
+
                     let mut buttons = Vec::new();
                     if challenge_result.can_use_artifact {
                         buttons.push(html! {
-                            <ybc::Button><Icon classes="icon" name=IconName::ChessQueen/><span>{"Use Artifact"}</span></ybc::Button>
+                            <ybc::Button onclick=use_artifact><Icon classes="icon" name=IconName::ChessQueen/><span>{"Use Artifact"}</span></ybc::Button>
                         });
                     }
                     if challenge_result.success {
                         buttons.push(html! {
-                            <ybc::Button classes="is-primary"><Icon classes="icon" name=IconName::Child/><span>{"Take Success"}</span></ybc::Button>
+                            <ybc::Button classes="is-primary" onclick=accept_fate.clone()><Icon classes="icon" name=IconName::Child/><span>{"Take Success"}</span></ybc::Button>
                         });
                     } else {
                         buttons.push(html! {
-                            <ybc::Button classes="is-danger"><Icon classes="icon" name=IconName::Wheelchair/><span>{"Take Wound"}</span></ybc::Button>
+                            <ybc::Button classes="is-danger" onclick=take_wound><Icon classes="icon" name=IconName::Wheelchair/><span>{"Take Wound"}</span></ybc::Button>
                         });
                         buttons.push(html! {
-                            <ybc::Button classes="is-danger"><Icon classes="icon" name=IconName::Dizzy/><span>{"Accept Failure"}</span></ybc::Button>
+                            <ybc::Button classes="is-danger" onclick=accept_fate><Icon classes="icon" name=IconName::Dizzy/><span>{"Accept Failure"}</span></ybc::Button>
                         });
                     }
                     buttons.into_iter().collect()

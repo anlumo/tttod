@@ -69,6 +69,9 @@ pub enum Msg {
     OfferChallenge(Challenge),
     AcceptChallenge,
     RejectChallenge,
+    UseArtifact,
+    TakeWound,
+    AcceptFate,
 }
 
 fn local_storage() -> web_sys::Storage {
@@ -150,6 +153,18 @@ impl Component for Game {
             }
             Msg::RejectChallenge => {
                 self.send_message(ClientToServerMessage::ChallengeRejected);
+                false
+            }
+            Msg::UseArtifact => {
+                self.send_message(ClientToServerMessage::UseArtifact);
+                false
+            }
+            Msg::TakeWound => {
+                self.send_message(ClientToServerMessage::TakeWound);
+                false
+            }
+            Msg::AcceptFate => {
+                self.send_message(ClientToServerMessage::AcceptFate);
                 false
             }
             Msg::SetWebsocket(meta, sink) => {
@@ -249,6 +264,10 @@ impl Component for Game {
         let reject_secret_callback = self.link.callback(|_| Msg::RejectSecret);
         let accept_challenge_callback = self.link.callback(|_| Msg::AcceptChallenge);
         let reject_challenge_callback = self.link.callback(|_| Msg::RejectChallenge);
+        let use_artifact_callback = self.link.callback(|_| Msg::UseArtifact);
+        let take_wound_callback = self.link.callback(|_| Msg::TakeWound);
+        let accept_fate_callback = self.link.callback(|_| Msg::AcceptFate);
+
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
@@ -295,6 +314,9 @@ impl Component for Game {
                                     offer_challenge=offer_challenge_callback
                                     accept_challenge=accept_challenge_callback
                                     reject_challenge=reject_challenge_callback
+                                    use_artifact=use_artifact_callback
+                                    take_wound=take_wound_callback
+                                    accept_fate=accept_fate_callback
                                 />
                             }
                         }
