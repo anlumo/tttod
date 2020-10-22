@@ -43,6 +43,10 @@ impl Component for CreateCharacter {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Ready => {
+                // fake the state until the server confirms it
+                if let Some(player) = self.props.players.get_mut(&self.props.player_id) {
+                    player.ready = true;
+                }
                 self.props.set_ready.emit(());
             }
             Msg::UpdateName(name) => {
