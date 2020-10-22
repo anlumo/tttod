@@ -62,6 +62,17 @@ impl Condition {
     }
 }
 
+impl fmt::Display for Condition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Hale => write!(f, "Hale"),
+            Self::Wounded => write!(f, "Wounded"),
+            Self::Critical => write!(f, "Critical"),
+            Self::Dead => write!(f, "Dead"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum MentalCondition {

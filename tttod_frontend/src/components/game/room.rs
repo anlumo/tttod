@@ -1,4 +1,4 @@
-use super::{ChallengeDialog, CharacterViewer, OfferChallenge, PlayerList};
+use super::{ChallengeDialog, ChallengeResultDialog, CharacterViewer, OfferChallenge, PlayerList};
 use crate::{components::Icon, IconName};
 use std::collections::HashMap;
 use tttod_data::{
@@ -135,8 +135,12 @@ impl Component for Room {
                                 html! {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
                                         <CharacterViewer classes="m-2" player=player.clone() header={
-                                            html! {
-                                                <ChallengeDialog player_id=player_id player=player offer_challenge=offer_challenge_callback/>
+                                            if self.props.state.challenge.is_none() {
+                                                html! {
+                                                    <ChallengeDialog player_id=player_id player=player offer_challenge=offer_challenge_callback/>
+                                                }
+                                            } else {
+                                                html! {}
                                             }
                                         }/>
                                     </ybc::Tile>
@@ -233,7 +237,18 @@ impl Component for Room {
                         let accept_challenge_callback = self.props.accept_challenge.clone();
                         let reject_challenge_callback = self.props.reject_challenge.clone();
                         html! {
-                            <OfferChallenge challenge=self.props.state.challenge.clone() player=player.clone() accept_challenge=accept_challenge_callback reject_challenge=reject_challenge_callback/>
+                            <>
+                                {
+                                    if self.props.state.challenge_result.is_none() {
+                                        html! {
+                                            <OfferChallenge challenge=self.props.state.challenge.clone() player=player.clone() accept_challenge=accept_challenge_callback reject_challenge=reject_challenge_callback/>
+                                        }
+                                    } else {
+                                        html! {}
+                                    }
+                                }
+                                <ChallengeResultDialog challenge_result=self.props.state.challenge_result.clone() player=player.clone()/>
+                            </>
                         }
                     } else {
                         html! {}
