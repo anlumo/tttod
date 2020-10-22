@@ -5,7 +5,7 @@ use futures::{
     channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
     StreamExt,
 };
-use rand::{seq::SliceRandom, RngCore};
+use rand::{seq::SliceRandom, Rng, RngCore};
 use std::collections::{HashMap, HashSet};
 use tttod_data::{
     ArtifactBoon, Attribute, Challenge, ChallengeResult, ClientToServerMessage, Condition,
@@ -115,9 +115,7 @@ impl GameManager {
     }
     fn roll_d6(count: usize) -> Vec<u8> {
         let mut rng = rand::thread_rng();
-        (0..count)
-            .map(|_| (6.0 * ((rng.next_u32() as f64) / (std::u32::MAX as f64))) as u8 + 1)
-            .collect()
+        (0..count).map(|_| rng.gen_range(1, 7)).collect()
     }
     fn possessed_dice(dice: &[u8]) -> bool {
         let ones = dice.iter().filter(|die| **die == 1).count();
