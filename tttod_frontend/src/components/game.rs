@@ -317,6 +317,9 @@ impl Game {
                 }
                 log::warn!("Websocket connection lost!");
                 link.send_message(Msg::WebsocketClosed);
+            } else {
+                log::warn!("Unable to establish Websocket connection!");
+                link.send_message(Msg::WebsocketClosed);
             }
         });
     }
