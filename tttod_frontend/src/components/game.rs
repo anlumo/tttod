@@ -14,6 +14,8 @@ mod room;
 pub use room::{Room, RoomState};
 mod challenge_dialog;
 pub use challenge_dialog::ChallengeDialog;
+mod offer_challenge;
+pub use offer_challenge::OfferChallenge;
 
 use futures::{
     sink::SinkExt,

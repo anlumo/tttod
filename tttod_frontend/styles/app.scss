@@ -107,7 +107,7 @@ ul.no-bullet {
     color: $danger;
 }
 
-.player-list {
+.player-list, .dice-list {
     display: flex;
     &>* {
         margin: 0 0.1em;

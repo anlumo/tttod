@@ -1,4 +1,4 @@
-use super::{ChallengeDialog, CharacterViewer, PlayerList};
+use super::{ChallengeDialog, CharacterViewer, OfferChallenge, PlayerList};
 use crate::{components::Icon, IconName};
 use std::collections::HashMap;
 use tttod_data::{
@@ -231,6 +231,10 @@ impl Component for Room {
                                     </>
                                 }
                             }/>
+                        }
+                    } else if let Some(player) = player {
+                        html! {
+                            <OfferChallenge challenge=self.props.state.challenge.clone() player=player.clone()/>
                         }
                     } else {
                         html! {}
