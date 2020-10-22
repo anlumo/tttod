@@ -137,18 +137,20 @@ impl Component for Room {
                     }
                 }
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
-                    <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Three>
-                        <ybc::Table classes="success-table" fullwidth=true>
-                            <tbody>
-                                <tr><td class="success-table-label"><label class="label">{"Failures:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-danger" max={ FAILURES_NEEDED as f32 } value={ self.props.failures as f32 }/></td><td class="success-table-summary">{self.props.failures}{"/"}{FAILURES_NEEDED}</td></tr>
-                                <tr><td class="success-table-label"><label class="label">{"Successes:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-primary" max={ SUCCESSES_NEEDED as f32 } value={ self.props.successes as f32 }/></td><td class="success-table-summary">{self.props.successes}{"/"}{SUCCESSES_NEEDED}</td></tr>
-                            </tbody>
-                        </ybc::Table>
+                    <ybc::Tile classes="pt-4" vertical=true ctx=TileCtx::Child size=TileSize::Four>
+                        <ybc::Box classes="p-1">
+                            <ybc::Table classes="success-table" fullwidth=true>
+                                <tbody>
+                                    <tr><td class="success-table-label"><label class="label">{"Failures:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-danger" max={ FAILURES_NEEDED as f32 } value={ self.props.failures as f32 }/></td><td class="success-table-summary">{self.props.failures}{"/"}{FAILURES_NEEDED}</td></tr>
+                                    <tr><td class="success-table-label"><label class="label">{"Successes:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-primary" max={ SUCCESSES_NEEDED as f32 } value={ self.props.successes as f32 }/></td><td class="success-table-summary">{self.props.successes}{"/"}{SUCCESSES_NEEDED}</td></tr>
+                                </tbody>
+                            </ybc::Table>
+                        </ybc::Box>
                     </ybc::Tile>
                     {
                         if !self.props.known_clues.is_empty() {
                             html! {
-                                <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Nine>
+                                <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Eight>
                                     <ybc::Box classes="m-4">
                                         <ybc::Title size=HeaderSize::Is5>{"Known Secrets"}</ybc::Title>
                                         <ul>
