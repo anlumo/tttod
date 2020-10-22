@@ -117,16 +117,20 @@ impl Component for Room {
                     </ybc::Tile>
                 </ybc::Tile>
                 {
-                    if let Some(clue) = &self.props.state.clue {
-                        html! {
-                            <ybc::Tile vertical=false ctx=TileCtx::Child>
-                                <ybc::Box classes="m-4 has-background-primary-light">
-                                    <ybc::Title size=HeaderSize::Is5>{"Secret for This Room"}</ybc::Title>
-                                    <p>{
-                                        clue
-                                    }</p>
-                                </ybc::Box>
-                            </ybc::Tile>
+                    if is_gm {
+                        if let Some(clue) = &self.props.state.clue {
+                            html! {
+                                <ybc::Tile vertical=false ctx=TileCtx::Child>
+                                    <ybc::Box classes="m-4 has-background-primary-light">
+                                        <ybc::Title size=HeaderSize::Is5>{"Secret for This Room"}</ybc::Title>
+                                        <p>{
+                                            clue
+                                        }</p>
+                                    </ybc::Box>
+                                </ybc::Tile>
+                            }
+                        } else {
+                            html! {}
                         }
                     } else {
                         html! {}
