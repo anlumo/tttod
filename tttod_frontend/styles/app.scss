@@ -173,3 +173,32 @@ tr .name {
 .stat-rating {
     margin-right: 0.3em;
 }
+
+.success-table {
+    table-layout: fixed;
+    width: 100%;
+
+    td {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    td.success-table-label {
+        text-align: right;
+        width: 6.5em;
+    }
+
+    td.success-table-progress {
+        max-width: 99%;
+        margin: 0;
+        padding: 0;
+        vertical-align: middle;
+        progress {
+            display: inline-block;
+        }
+    }
+    td.success-table-summary {
+        width: 3em;
+        text-align: right;
+    }
+}

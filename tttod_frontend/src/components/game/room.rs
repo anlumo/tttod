@@ -103,30 +103,12 @@ impl Component for Room {
                     </ybc::Tile>
                 </ybc::Tile>
                 <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Three>
-                    <div class="field is-horizontal">
-                        <div class="field-label is-normal">
-                            <label class="label">{"Failures:"}</label>
-                        </div>
-                        <div class="field-body is-align-items-center">
-                            <div class="field">
-                                <p class="control">
-                                    <ybc::Progress classes="is-danger" max={ FAILURES_NEEDED as f32 } value={ self.props.failures as f32 }/>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="field is-horizontal">
-                        <div class="field-label is-normal">
-                            <label class="label">{"Successes:"}</label>
-                        </div>
-                        <div class="field-body is-align-items-center">
-                            <div class="field">
-                                <p class="control">
-                                <ybc::Progress classes="is-primary" max={ SUCCESSES_NEEDED as f32 } value={ self.props.successes as f32 }/>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    <ybc::Table classes="success-table" fullwidth=true>
+                        <tbody>
+                            <tr><td class="success-table-label"><label class="label">{"Failures:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-danger" max={ FAILURES_NEEDED as f32 } value={ self.props.failures as f32 }/></td><td class="success-table-summary">{self.props.failures}{"/"}{FAILURES_NEEDED}</td></tr>
+                            <tr><td class="success-table-label"><label class="label">{"Successes:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-primary" max={ SUCCESSES_NEEDED as f32 } value={ self.props.successes as f32 }/></td><td class="success-table-summary">{self.props.successes}{"/"}{SUCCESSES_NEEDED}</td></tr>
+                        </tbody>
+                    </ybc::Table>
                 </ybc::Tile>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent size=TileSize::Twelve>
                     {
