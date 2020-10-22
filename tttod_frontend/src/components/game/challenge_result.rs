@@ -141,7 +141,7 @@ impl Component for ChallengeResultDialog {
                                     if !challenge_result.success {
                                         html! {
                                             <p>
-                                                {"You can take a wound to turn it into a success. You are curently "}
+                                                {"You can take a wound to turn it into a success. You are currently "}
                                                 <span class="has-text-weight-bold">
                                                     { format!("{}", self.props.player.condition) }
                                                 </span>
@@ -167,19 +167,19 @@ impl Component for ChallengeResultDialog {
                     let mut buttons = Vec::new();
                     if challenge_result.can_use_artifact {
                         buttons.push(html! {
-                            <ybc::Button>{"Use Artifact"}</ybc::Button>
+                            <ybc::Button><Icon classes="icon" name=IconName::ChessQueen/><span>{"Use Artifact"}</span></ybc::Button>
                         });
                     }
                     if challenge_result.success {
                         buttons.push(html! {
-                            <ybc::Button classes="is-primary">{"Take Success"}</ybc::Button>
+                            <ybc::Button classes="is-primary"><Icon classes="icon" name=IconName::Child/><span>{"Take Success"}</span></ybc::Button>
                         });
                     } else {
                         buttons.push(html! {
-                            <ybc::Button classes="is-danger">{"Take Wound"}</ybc::Button>
+                            <ybc::Button classes="is-danger"><Icon classes="icon" name=IconName::Wheelchair/><span>{"Take Wound"}</span></ybc::Button>
                         });
                         buttons.push(html! {
-                            <ybc::Button classes="is-danger">{"Accept Failure"}</ybc::Button>
+                            <ybc::Button classes="is-danger"><Icon classes="icon" name=IconName::Dizzy/><span>{"Accept Failure"}</span></ybc::Button>
                         });
                     }
                     buttons.into_iter().collect()

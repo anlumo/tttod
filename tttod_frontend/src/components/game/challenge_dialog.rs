@@ -1,3 +1,4 @@
+use crate::{components::Icon, IconName};
 use std::str::FromStr;
 use tttod_data::{Attribute, Challenge, Player};
 use uuid::Uuid;
@@ -177,8 +178,8 @@ impl Component for ChallengeDialog {
             } footer={
                 html! {
                     <>
-                        <ybc::Button onclick=abort_challenge_callback>{"Abort"}</ybc::Button>
-                        <ybc::Button classes="has-background-danger" onclick=offer_challenge_callback>{"Offer Challenge"}</ybc::Button>
+                        <ybc::Button onclick=abort_challenge_callback><Icon classes="icon" name=IconName::Times/><span>{"Abort"}</span></ybc::Button>
+                        <ybc::Button classes="has-background-danger" onclick=offer_challenge_callback><Icon classes="icon" name=IconName::Dice/><span>{"Offer Challenge"}</span></ybc::Button>
                     </>
                 }
             }/>

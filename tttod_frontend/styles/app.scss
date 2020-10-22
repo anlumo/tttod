@@ -75,6 +75,9 @@ body {
 }
 button {
     font-family: 'Adventure';
+    &>i.icon {
+        height: auto !important;
+    }
 }
 textarea {
     font-family: 'Piazzolla';
