@@ -18,6 +18,12 @@ mod offer_challenge;
 pub use offer_challenge::OfferChallenge;
 mod challenge_result;
 pub use challenge_result::ChallengeResultDialog;
+mod face_evil;
+pub use face_evil::FaceEvil;
+mod failure;
+pub use failure::Failure;
+mod success;
+pub use success::Success;
 
 use futures::{
     sink::SinkExt,
@@ -68,6 +74,7 @@ pub enum Msg {
     ReceivedMessage(ServerToClientMessage),
     RejectSecret,
     OfferChallenge(Challenge),
+    OfferChallengeFinal(Challenge, usize),
     AcceptChallenge,
     RejectChallenge,
     UseArtifact,
@@ -150,6 +157,13 @@ impl Component for Game {
             }
             Msg::OfferChallenge(challenge) => {
                 self.send_message(ClientToServerMessage::OfferChallenge { challenge });
+                false
+            }
+            Msg::OfferChallengeFinal(challenge, clue_idx) => {
+                self.send_message(ClientToServerMessage::OfferChallengeFinal {
+                    challenge,
+                    clue_idx,
+                });
                 false
             }
             Msg::AcceptChallenge => {
@@ -289,7 +303,7 @@ impl Component for Game {
             {
                 if self.websocket.is_some() {
                     log::debug!("state = {:?}", self.state);
-                    match self.state {
+                    match &self.state {
                         GameState::PlayerSelection => {
                             html! {
                                 <Lobby set_name=set_name_callback set_ready=set_ready_callback vote_kick=vote_kick_callback player_id=self.player_id players=self.players.clone() player_kick_votes=self.player_kick_votes.clone()/>
@@ -337,9 +351,37 @@ impl Component for Game {
                                 />
                             }
                         }
-                        GameState::FinalBattle => {
+                        GameState::FinalBattle {
+                            remaining_clues,
+                            gms,
+                            successes,
+                            target_successes,
+                        } => {
+                            let offer_challenge_final_callback = self.link.callback(|(challenge, clue_idx)| Msg::OfferChallengeFinal(challenge, clue_idx));
                             html! {
-                                <div/>
+                                <FaceEvil
+                                    player_id=self.player_id
+                                    players=self.players.clone()
+                                    gms=gms
+                                    successes=successes
+                                    remaining_clues=remaining_clues
+                                    offer_challenge=offer_challenge_final_callback
+                                    accept_challenge=accept_challenge_callback
+                                    reject_challenge=reject_challenge_callback
+                                    use_artifact=use_artifact_callback
+                                    take_wound=take_wound_callback
+                                    accept_fate=accept_fate_callback
+                                />
+                            }
+                        }
+                        GameState::Victory => {
+                            html! {
+                                <Success set_ready=set_ready_callback/>
+                            }
+                        }
+                        GameState::Failure => {
+                            html! {
+                                <Failure set_ready=set_ready_callback/>
                             }
                         }
                     }
