@@ -15,6 +15,8 @@ pub enum GameState {
         failures: usize,
     },
     FinalBattle,
+    Victory,
+    Failure,
 }
 
 impl Default for GameState {

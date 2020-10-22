@@ -202,14 +202,18 @@ impl GameManager {
             Ok(success) => {
                 if success {
                     // face the ancient evil
-                    if let Err(err) = instance.face_ancient_evil().await {
-                        log::error!("face_ancient_evil: {:?}", err);
+                    match instance.face_ancient_evil().await {
+                        Err(err) => {
+                            log::error!("face_ancient_evil: {:?}", err);
+                        }
+                        Ok(success) => {
+                            if let Err(err) = instance.end(success).await {
+                                log::error!("end: {:?}", err);
+                            }
+                        }
                     }
-                } else {
-                    // failure
-                    if let Err(err) = instance.failed().await {
-                        log::error!("failed: {:?}", err);
-                    }
+                } else if let Err(err) = instance.end(false).await {
+                    log::error!("failed: {:?}", err);
                 }
             }
         }
@@ -940,10 +944,67 @@ impl GameManager {
 
         Ok(true)
     }
-    async fn face_ancient_evil(&mut self) -> Result<(), Error> {
-        Ok(())
+    async fn face_ancient_evil(&mut self) -> Result<bool, Error> {
+        Ok(false)
     }
-    async fn failed(&mut self) -> Result<(), Error> {
+    async fn end(&mut self, victory: bool) -> Result<(), Error> {
+        let game_state = if victory {
+            GameState::Victory
+        } else {
+            GameState::Failure
+        };
+        for (player, _) in self.players.values_mut() {
+            player.ready = false;
+        }
+        self.push_state_all(game_state);
+        while !self.players.values().all(|(player, _)| player.ready) {
+            match self.receiver.next().await {
+                None => {
+                    log::error!("Game failed");
+                    return Err(Error::NoPlayers);
+                }
+                Some(InternalMessage::AddClient { player_id, sender }) => {
+                    let all_players: HashMap<_, _> = self
+                        .players
+                        .iter()
+                        .map(|(id, (player, _))| (*id, player.clone()))
+                        .collect();
+                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                        let client_idx = senders.len();
+                        senders.push(sender);
+                        self.send_to_client(
+                            player_id,
+                            client_idx,
+                            ServerToClientMessage::PushState {
+                                players: all_players.clone(),
+                                game_state,
+                                player_kick_votes: HashMap::new(),
+                                known_clues: Vec::new(),
+                            },
+                        );
+                    } else {
+                        sender
+                            .unbounded_send(ServerToClientMessage::GameIsOngoing)
+                            .ok();
+                        sender.close_channel();
+                    }
+                }
+                Some(InternalMessage::RemoveClient { player_id }) => {
+                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                        senders.drain_filter(|sender| sender.is_closed());
+                    }
+                }
+                Some(InternalMessage::Message { player_id, message }) => match message {
+                    ClientToServerMessage::ReadyForGame => {
+                        if let Some((player, _)) = self.players.get_mut(&player_id) {
+                            player.ready = true;
+                        }
+                        self.push_state_all(game_state);
+                    }
+                    _ => {}
+                },
+            }
+        }
         Ok(())
     }
 }
