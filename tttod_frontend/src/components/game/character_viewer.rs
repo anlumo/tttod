@@ -47,17 +47,25 @@ impl Component for CharacterViewer {
                             <p>
                                 {format!("I specialize in {}. I'm known for being {}.", stats.speciality, stats.reputation)}
                             </p>
-                            <p>
-                                {format!("I once found the {} in {}. ", stats.artifact_name, stats.artifact_origin)}
-                                {
-                                    match stats.artifact_boon {
-                                        ArtifactBoon::Reroll => "It allows me to reroll once.",
-                                        ArtifactBoon::RollWithPlusTwo => "It allows me to roll two additional dice once.",
-                                        ArtifactBoon::SuccessOnFive => "It makes a roll succeed on a 5 once.",
-                                        ArtifactBoon::SuccessOnDoubles => "It makes a roll succeed on a double once.",
+                            {
+                                if player.artifact_used {
+                                    html! {}
+                                } else {
+                                    html! {
+                                        <p>
+                                            {format!("I once found the {} in {}. ", stats.artifact_name, stats.artifact_origin)}
+                                            {
+                                                match stats.artifact_boon {
+                                                    ArtifactBoon::Reroll => "It allows me to reroll once.",
+                                                    ArtifactBoon::RollWithPlusTwo => "It allows me to roll two additional dice once.",
+                                                    ArtifactBoon::SuccessOnFive => "It makes a roll succeed on a 5 once.",
+                                                    ArtifactBoon::SuccessOnDoubles => "It makes a roll succeed on a double once.",
+                                                }
+                                            }
+                                        </p>
                                     }
                                 }
-                            </p>
+                            }
                         </ybc::Content>
                     </ybc::CardContent>
                     <ybc::CardFooter>
