@@ -91,6 +91,10 @@ ul.no-bullet {
     list-style: none;
 }
 
+ol {
+    list-style-position: inside;
+}
+
 .tile.is-ancestor {
     background-color: adjust-color($scheme-main, $alpha: -0.2);
     border-radius: 5px;

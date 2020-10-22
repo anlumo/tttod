@@ -153,7 +153,7 @@ impl Component for Room {
                                 <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Eight>
                                     <ybc::Box classes="m-4">
                                         <ybc::Title size=HeaderSize::Is5>{"Known Secrets"}</ybc::Title>
-                                        <ul>
+                                        <ol>
                                             {
                                                 for self.props.known_clues.iter().map(|clue| {
                                                     html! {
@@ -161,7 +161,7 @@ impl Component for Room {
                                                     }
                                                 })
                                             }
-                                        </ul>
+                                        </ol>
                                     </ybc::Box>
                                 </ybc::Tile>
                             }
