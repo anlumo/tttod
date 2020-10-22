@@ -16,6 +16,8 @@ pub struct OfferChallenge {
 pub struct Props {
     pub player: Player,
     pub challenge: Option<Challenge>,
+    pub accept_challenge: Callback<()>,
+    pub reject_challenge: Callback<()>,
 }
 
 pub enum Msg {
@@ -40,11 +42,13 @@ impl Component for OfferChallenge {
             Msg::AcceptChallenge => {
                 self.modal_bridge
                     .send(ybc::ModalCloseMsg("offer-challenge".to_owned()));
+                self.props.accept_challenge.emit(());
                 true
             }
             Msg::Abort => {
                 self.modal_bridge
                     .send(ybc::ModalCloseMsg("offer-challenge".to_owned()));
+                self.props.reject_challenge.emit(());
                 true
             }
         }

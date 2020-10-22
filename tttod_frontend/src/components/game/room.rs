@@ -28,14 +28,15 @@ pub struct Props {
     pub successes: usize,
     pub failures: usize,
     pub state: RoomState,
-    pub reject_secret_callback: yew::Callback<()>,
+    pub reject_secret: yew::Callback<()>,
+    pub accept_challenge: yew::Callback<()>,
+    pub reject_challenge: yew::Callback<()>,
     pub offer_challenge: yew::Callback<Challenge>,
 }
 
 pub enum Msg {
     DismissGMModal,
     RejectSecret,
-    OfferChallenge(Challenge),
 }
 
 impl Component for Room {
@@ -62,11 +63,7 @@ impl Component for Room {
             }
             Msg::RejectSecret => {
                 self.rejected_secret = self.props.state.clue.clone();
-                self.props.reject_secret_callback.emit(());
-                false
-            }
-            Msg::OfferChallenge(challenge) => {
-                self.props.offer_challenge.emit(challenge);
+                self.props.reject_secret.emit(());
                 false
             }
         }
@@ -134,7 +131,7 @@ impl Component for Room {
                             self.props.players.iter().filter(|(&player_id, player)| {
                                 player_id != self.props.player_id && player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed
                             }).map(|(player_id, player)| {
-                                let offer_challenge_callback = self.link.callback(Msg::OfferChallenge);
+                                let offer_challenge_callback = self.props.offer_challenge.clone();
                                 html! {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
                                         <CharacterViewer classes="m-2" player=player.clone() header={
@@ -233,8 +230,10 @@ impl Component for Room {
                             }/>
                         }
                     } else if let Some(player) = player {
+                        let accept_challenge_callback = self.props.accept_challenge.clone();
+                        let reject_challenge_callback = self.props.reject_challenge.clone();
                         html! {
-                            <OfferChallenge challenge=self.props.state.challenge.clone() player=player.clone()/>
+                            <OfferChallenge challenge=self.props.state.challenge.clone() player=player.clone() accept_challenge=accept_challenge_callback reject_challenge=reject_challenge_callback/>
                         }
                     } else {
                         html! {}

@@ -65,6 +65,8 @@ pub enum Msg {
     ReceivedMessage(ServerToClientMessage),
     RejectSecret,
     OfferChallenge(Challenge),
+    AcceptChallenge,
+    RejectChallenge,
 }
 
 fn local_storage() -> web_sys::Storage {
@@ -138,6 +140,14 @@ impl Component for Game {
             }
             Msg::OfferChallenge(challenge) => {
                 self.send_message(ClientToServerMessage::OfferChallenge { challenge });
+                false
+            }
+            Msg::AcceptChallenge => {
+                self.send_message(ClientToServerMessage::ChallengeAccepted);
+                false
+            }
+            Msg::RejectChallenge => {
+                self.send_message(ClientToServerMessage::ChallengeRejected);
                 false
             }
             Msg::SetWebsocket(meta, sink) => {
@@ -235,6 +245,8 @@ impl Component for Game {
         let set_answer_callback = self.link.callback(|(idx, text)| Msg::SetAnswer(idx, text));
         let set_character_callback = self.link.callback(Msg::SetCharacter);
         let reject_secret_callback = self.link.callback(|_| Msg::RejectSecret);
+        let accept_challenge_callback = self.link.callback(|_| Msg::AcceptChallenge);
+        let reject_challenge_callback = self.link.callback(|_| Msg::RejectChallenge);
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
@@ -269,7 +281,19 @@ impl Component for Game {
                         GameState::Room { room_idx, gm, successes, failures } => {
                             let offer_challenge_callback = self.link.callback(Msg::OfferChallenge);
                             html! {
-                                <Room player_id=self.player_id players=self.players.clone() room_idx=room_idx gm=gm successes=successes failures=failures state=self.room_state.clone() reject_secret_callback=reject_secret_callback offer_challenge=offer_challenge_callback/>
+                                <Room
+                                    player_id=self.player_id
+                                    players=self.players.clone()
+                                    room_idx=room_idx
+                                    gm=gm
+                                    successes=successes
+                                    failures=failures
+                                    state=self.room_state.clone()
+                                    reject_secret=reject_secret_callback
+                                    offer_challenge=offer_challenge_callback
+                                    accept_challenge=accept_challenge_callback
+                                    reject_challenge=reject_challenge_callback
+                                />
                             }
                         }
                         GameState::FinalBattle => {
