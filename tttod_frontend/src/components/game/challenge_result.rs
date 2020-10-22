@@ -104,7 +104,11 @@ impl Component for ChallengeResultDialog {
                                             <p>
                                                 {
                                                     if challenge_result.can_use_artifact && stats.artifact_boon == ArtifactBoon::Reroll {
-                                                        "The Ancient Evil is also trying to erode your will! You can use your artifact to attempt to avoid this."
+                                                        if self.props.player.mental_condition == MentalCondition::Resisted {
+                                                            "The Ancient Evil is also trying to erode your will! You can use your artifact to attempt to avoid this, or you get turned this time."
+                                                        } else {
+                                                            "The Ancient Evil is also trying to erode your will! You can use your artifact to attempt to avoid this."
+                                                        }
                                                     } else if self.props.player.mental_condition == MentalCondition::Resisted {
                                                         "The Ancient Evil has you under their control! Reveal your true nature at will and mysteriously \
                                                         disappear. You will return to aid your new master in the final battle."
