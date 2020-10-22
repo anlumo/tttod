@@ -46,6 +46,7 @@ pub struct Game {
     websocket: Option<(WsMeta, Rc<RefCell<SplitSink<WsStream, WsMessage>>>)>,
     players: HashMap<Uuid, Player>,
     player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
+    known_clues: Vec<String>,
     questions: Vec<(String, String)>,
     room_state: RoomState,
 }
@@ -104,6 +105,7 @@ impl Component for Game {
             websocket: None,
             players: HashMap::new(),
             player_kick_votes: HashMap::new(),
+            known_clues: Vec::new(),
             questions: Vec::new(),
             room_state: RoomState::default(),
         };
@@ -186,6 +188,7 @@ impl Component for Game {
                         self.state = game_state;
                         self.players = players;
                         self.player_kick_votes = player_kick_votes;
+                        self.known_clues = known_clues;
                         true
                     }
                     ServerToClientMessage::Questions { questions } => {
@@ -310,6 +313,7 @@ impl Component for Game {
                                     successes=successes
                                     failures=failures
                                     state=self.room_state.clone()
+                                    known_clues=self.known_clues.clone()
                                     reject_secret=reject_secret_callback
                                     offer_challenge=offer_challenge_callback
                                     accept_challenge=accept_challenge_callback

@@ -28,6 +28,7 @@ pub struct Props {
     pub successes: usize,
     pub failures: usize,
     pub state: RoomState,
+    pub known_clues: Vec<String>,
     pub reject_secret: yew::Callback<()>,
     pub accept_challenge: yew::Callback<()>,
     pub reject_challenge: yew::Callback<()>,
@@ -102,13 +103,37 @@ impl Component for Room {
                         <PlayerList player_id=self.props.player_id players=&self.props.players/>
                     </ybc::Tile>
                 </ybc::Tile>
-                <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Three>
-                    <ybc::Table classes="success-table" fullwidth=true>
-                        <tbody>
-                            <tr><td class="success-table-label"><label class="label">{"Failures:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-danger" max={ FAILURES_NEEDED as f32 } value={ self.props.failures as f32 }/></td><td class="success-table-summary">{self.props.failures}{"/"}{FAILURES_NEEDED}</td></tr>
-                            <tr><td class="success-table-label"><label class="label">{"Successes:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-primary" max={ SUCCESSES_NEEDED as f32 } value={ self.props.successes as f32 }/></td><td class="success-table-summary">{self.props.successes}{"/"}{SUCCESSES_NEEDED}</td></tr>
-                        </tbody>
-                    </ybc::Table>
+                <ybc::Tile vertical=false ctx=TileCtx::Parent>
+                    <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Three>
+                        <ybc::Table classes="success-table" fullwidth=true>
+                            <tbody>
+                                <tr><td class="success-table-label"><label class="label">{"Failures:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-danger" max={ FAILURES_NEEDED as f32 } value={ self.props.failures as f32 }/></td><td class="success-table-summary">{self.props.failures}{"/"}{FAILURES_NEEDED}</td></tr>
+                                <tr><td class="success-table-label"><label class="label">{"Successes:"}</label></td><td class="success-table-progress"><ybc::Progress classes="is-primary" max={ SUCCESSES_NEEDED as f32 } value={ self.props.successes as f32 }/></td><td class="success-table-summary">{self.props.successes}{"/"}{SUCCESSES_NEEDED}</td></tr>
+                            </tbody>
+                        </ybc::Table>
+                    </ybc::Tile>
+                    {
+                        if !self.props.known_clues.is_empty() {
+                            html! {
+                                <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Nine>
+                                    <ybc::Box classes="m-4">
+                                        <ybc::Title size=HeaderSize::Is5>{"Known Secrets"}</ybc::Title>
+                                        <ul>
+                                            {
+                                                for self.props.known_clues.iter().map(|clue| {
+                                                    html! {
+                                                        <li>{clue}</li>
+                                                    }
+                                                })
+                                            }
+                                        </ul>
+                                    </ybc::Box>
+                                </ybc::Tile>
+                            }
+                        } else {
+                            html! {}
+                        }
+                    }
                 </ybc::Tile>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent size=TileSize::Twelve>
                     {
