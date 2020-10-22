@@ -115,9 +115,18 @@ impl Component for ChallengeResultDialog {
                                             </p>
                                         }
                                     } else if challenge_result.can_use_artifact {
+                                        let stats = self.props.player.stats.as_ref().unwrap();
                                         html! {
                                             <p>
-                                                {"You can use your artifact to avoid this situation."}
+                                                {"You can use your artifact to avoid this situation. "}
+                                                {
+                                                    match stats.artifact_boon {
+                                                        ArtifactBoon::Reroll => "It allows you to reroll all dice.",
+                                                        ArtifactBoon::RollWithPlusTwo => "It allows you to roll two additional dice.",
+                                                        ArtifactBoon::SuccessOnFive => "It makes the roll a success on 5+.",
+                                                        ArtifactBoon::SuccessOnDoubles => "It makes the roll a success on doubles.",
+                                                    }
+                                                }
                                             </p>
                                         }
                                     } else {
