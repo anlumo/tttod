@@ -830,6 +830,9 @@ impl GameManager {
                             {
                                 current_challenge = None;
                                 self.send_to(player_id, ServerToClientMessage::AbortedChallenge);
+                                if player_id != gm {
+                                    self.send_to(gm, ServerToClientMessage::AbortedChallenge);
+                                }
                             }
                         }
                         ClientToServerMessage::AcceptFate => {
@@ -943,6 +946,197 @@ impl GameManager {
         Ok(true)
     }
     async fn face_ancient_evil(&mut self) -> Result<bool, Error> {
+        let mut gms: HashSet<_> = self
+            .players
+            .iter()
+            .filter(|(_, (player, _))| {
+                player.condition == Condition::Dead
+                    || player.mental_condition == MentalCondition::Possessed
+            })
+            .map(|(&player_id, _)| player_id)
+            .collect();
+        if gms.is_empty() {
+            let mut rng = rand::thread_rng();
+            let player_ids: Vec<Uuid> = self.players.keys().cloned().collect();
+            gms.insert(player_ids[rng.gen_range(0, player_ids.len())]);
+        }
+        log::debug!("GMs are now {:?}", gms);
+        let target_successes = (self.players.len() + 1) / 2; // rounded up
+        let mut successes = 0;
+        let mut remaining_clues = self.known_clues(self.players.len()).clone();
+
+        self.push_state_all(GameState::FinalBattle {
+            remaining_clues: remaining_clues.clone(),
+            gms: gms.clone(),
+            successes,
+            target_successes,
+        });
+
+        let mut current_challenge: Option<(Challenge, usize)> = None;
+        let mut current_challenge_result: Option<Vec<u8>> = None;
+        let mut current_artifact_used: Option<ArtifactBoon> = None;
+
+        while successes < target_successes {
+            match self.receiver.next().await {
+                None => {
+                    log::error!("Game failed");
+                    return Err(Error::NoPlayers);
+                }
+                Some(InternalMessage::AddClient { player_id, sender }) => {
+                    let all_players: HashMap<_, _> = self
+                        .players
+                        .iter()
+                        .map(|(id, (player, _))| (*id, player.clone()))
+                        .collect();
+                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                        let client_idx = senders.len();
+                        senders.push(sender);
+                        self.send_to_client(
+                            player_id,
+                            client_idx,
+                            ServerToClientMessage::PushState {
+                                players: all_players.clone(),
+                                game_state: GameState::FinalBattle {
+                                    remaining_clues: remaining_clues.clone(),
+                                    gms: gms.clone(),
+                                    successes,
+                                    target_successes,
+                                },
+                                player_kick_votes: HashMap::new(),
+                                known_clues: Vec::new(),
+                            },
+                        );
+                        if let Some((current_challenge, clue_idx)) = &current_challenge {
+                            if current_challenge.player_id == player_id {
+                                let (artifact_boon, artifact_used) = self
+                                    .players
+                                    .get(&player_id)
+                                    .map(|(player, _)| {
+                                        (
+                                            player.stats.as_ref().map(|stats| stats.artifact_boon),
+                                            player.artifact_used,
+                                        )
+                                    })
+                                    .unwrap_or((None, true));
+                                self.send_to_client(
+                                    player_id,
+                                    client_idx,
+                                    ServerToClientMessage::ReceivedChallengeFinal {
+                                        challenge: current_challenge.clone(),
+                                        clue_idx: *clue_idx,
+                                    },
+                                );
+                                if let Some(challenge_result) = &current_challenge_result {
+                                    let can_use_artifact = artifact_boon
+                                        .map(|artifact_boon| {
+                                            !artifact_used
+                                                && Self::check_can_use_artifact(
+                                                    &challenge_result,
+                                                    artifact_boon,
+                                                )
+                                        })
+                                        .unwrap_or(false);
+                                    self.send_to_client(
+                                        player_id,
+                                        client_idx,
+                                        ServerToClientMessage::ChallengeResult(ChallengeResult {
+                                            possession: Self::possessed_dice(&challenge_result),
+                                            success: Self::check_success(
+                                                &challenge_result,
+                                                current_artifact_used,
+                                            ),
+                                            can_use_artifact,
+                                            rolls: challenge_result.clone(),
+                                        }),
+                                    );
+                                }
+                            }
+                        }
+                    } else {
+                        sender
+                            .unbounded_send(ServerToClientMessage::GameIsOngoing)
+                            .ok();
+                        sender.close_channel();
+                    }
+                }
+                Some(InternalMessage::RemoveClient { player_id }) => {
+                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
+                        senders.drain_filter(|sender| sender.is_closed());
+                    }
+                }
+                Some(InternalMessage::Message { player_id, message }) => match message {
+                    ClientToServerMessage::OfferChallengeFinal {
+                        challenge,
+                        clue_idx,
+                    } => {
+                        if gms.contains(&player_id)
+                            && !gms.contains(&challenge.player_id)
+                            && clue_idx < remaining_clues.len()
+                        {
+                            if let Some((player, _)) = self.players.get(&player_id) {
+                                if player.condition != Condition::Dead
+                                    && player.mental_condition != MentalCondition::Possessed
+                                {
+                                    current_challenge = Some((challenge, clue_idx));
+                                }
+                            }
+                        }
+                    }
+                    ClientToServerMessage::ChallengeAccepted => todo!(),
+                    ClientToServerMessage::ChallengeRejected => {
+                        if (gms.contains(&player_id)
+                            || current_challenge
+                                .as_ref()
+                                .map(|(challenge, _)| challenge.player_id)
+                                == Some(player_id))
+                            && current_challenge_result.is_none()
+                        {
+                            current_challenge = None;
+                            self.send_to(player_id, ServerToClientMessage::AbortedChallenge);
+                            for gm in &gms {
+                                if *gm != player_id {
+                                    self.send_to(*gm, ServerToClientMessage::AbortedChallenge);
+                                }
+                            }
+                        }
+                    }
+                    ClientToServerMessage::UseArtifact => todo!(),
+                    ClientToServerMessage::TakeWound => {
+                        if let Some((challenge, _)) = &current_challenge {
+                            if challenge.player_id == player_id {
+                                if let Some((player, _)) = self.players.get_mut(&player_id) {
+                                    player.condition = player.condition.take_hit();
+                                    current_challenge_result = None;
+                                    current_challenge = None;
+                                }
+                            }
+                        }
+                    }
+                    ClientToServerMessage::AcceptFate => {
+                        if let Some(current_challenge_result) = current_challenge_result.take() {
+                            if let Some((_, clue_idx)) = current_challenge.take() {
+                                if Self::check_success(
+                                    &current_challenge_result,
+                                    current_artifact_used.take(),
+                                ) {
+                                    successes += 1;
+                                }
+                                remaining_clues.remove(clue_idx);
+
+                                if Self::possessed_dice(&current_challenge_result) {
+                                    if let Some((player, _)) = self.players.get_mut(&player_id) {
+                                        player.mental_condition =
+                                            player.mental_condition.take_hit();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                },
+            }
+        }
+
         Ok(false)
     }
     async fn end(&mut self, victory: bool) -> Result<(), Error> {
@@ -954,7 +1148,7 @@ impl GameManager {
         for (player, _) in self.players.values_mut() {
             player.ready = false;
         }
-        self.push_state_all(game_state);
+        self.push_state_all(game_state.clone());
         while !self.players.values().all(|(player, _)| player.ready) {
             match self.receiver.next().await {
                 None => {
@@ -975,7 +1169,7 @@ impl GameManager {
                             client_idx,
                             ServerToClientMessage::PushState {
                                 players: all_players.clone(),
-                                game_state,
+                                game_state: game_state.clone(),
                                 player_kick_votes: HashMap::new(),
                                 known_clues: Vec::new(),
                             },
@@ -997,7 +1191,7 @@ impl GameManager {
                         if let Some((player, _)) = self.players.get_mut(&player_id) {
                             player.ready = true;
                         }
-                        self.push_state_all(game_state);
+                        self.push_state_all(game_state.clone());
                     }
                     _ => {}
                 },

@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum GameState {
     PlayerSelection,
@@ -14,7 +15,12 @@ pub enum GameState {
         successes: usize,
         failures: usize,
     },
-    FinalBattle,
+    FinalBattle {
+        remaining_clues: Vec<String>,
+        gms: HashSet<Uuid>,
+        successes: usize,
+        target_successes: usize,
+    },
     Victory,
     Failure,
 }

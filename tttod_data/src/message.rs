@@ -6,14 +6,30 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "cmd", rename_all = "snake_case")]
 pub enum ClientToServerMessage {
-    SetPlayerName { name: String },
+    SetPlayerName {
+        name: String,
+    },
     ReadyForGame,
-    VoteKickPlayer { player_id: Uuid },
-    RevertVoteKickPlayer { player_id: Uuid },
-    Answers { answers: Vec<String> },
-    SetCharacter { stats: PlayerStats },
+    VoteKickPlayer {
+        player_id: Uuid,
+    },
+    RevertVoteKickPlayer {
+        player_id: Uuid,
+    },
+    Answers {
+        answers: Vec<String>,
+    },
+    SetCharacter {
+        stats: PlayerStats,
+    },
     RejectClue,
-    OfferChallenge { challenge: Challenge },
+    OfferChallenge {
+        challenge: Challenge,
+    },
+    OfferChallengeFinal {
+        challenge: Challenge,
+        clue_idx: usize,
+    },
     ChallengeAccepted,
     ChallengeRejected,
     UseArtifact,
@@ -43,9 +59,12 @@ pub enum ServerToClientMessage {
     },
     ClueRejectionRejected,
     ReceivedChallenge(Challenge),
+    ReceivedChallengeFinal {
+        challenge: Challenge,
+        clue_idx: usize,
+    },
     AbortedChallenge,
     ChallengeResult(ChallengeResult),
-    EndGame,
 }
 
 impl ClientToServerMessage {

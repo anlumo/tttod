@@ -189,7 +189,6 @@ impl Component for Game {
                 match message {
                     ServerToClientMessage::GameIsFull => false,
                     ServerToClientMessage::GameIsOngoing => false,
-                    ServerToClientMessage::EndGame => false,
                     ServerToClientMessage::PushState {
                         players,
                         game_state,
