@@ -19,7 +19,7 @@ pub use offer_challenge::OfferChallenge;
 mod challenge_result;
 pub use challenge_result::ChallengeResultDialog;
 mod face_evil;
-pub use face_evil::FaceEvil;
+pub use face_evil::{EvilState, FaceEvil};
 mod failure;
 pub use failure::Failure;
 mod success;
@@ -358,12 +358,18 @@ impl Component for Game {
                             target_successes,
                         } => {
                             let offer_challenge_final_callback = self.link.callback(|(challenge, clue_idx)| Msg::OfferChallengeFinal(challenge, clue_idx));
+                            let evil_state = EvilState {
+                                challenge: self.room_state.challenge.clone(),
+                                challenge_result: self.room_state.challenge_result.clone(),
+                            };
                             html! {
                                 <FaceEvil
                                     player_id=self.player_id
                                     players=self.players.clone()
                                     gms=gms
                                     successes=successes
+                                    target_successes=target_successes
+                                    evil_state=evil_state
                                     remaining_clues=remaining_clues
                                     offer_challenge=offer_challenge_final_callback
                                     accept_challenge=accept_challenge_callback
