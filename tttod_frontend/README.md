@@ -54,6 +54,8 @@ npm test -- --safari
 
 https://www.pexels.com/photo/man-looking-at-an-ancient-temple-2495575/
 https://www.pexels.com/photo/horse-with-trailer-in-front-of-petra-1631665/
+https://www.maxpixels.net/Cavern-Light-Escape-Cave-Ocean-Exit-View-Travel-4971298
+world explosion: https://wallpaperaccess.com/faq#personaluse
 
 ### Fonts
 
