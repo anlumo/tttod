@@ -657,7 +657,10 @@ impl GameManager {
                     },
                 );
 
-                match self.receiver.next().await {
+                let event = self.receiver.next().await;
+                log::info!("Received event {:?}", event);
+
+                match event {
                     None => {
                         log::error!("Game failed");
                         return Err(Error::NoPlayers);
