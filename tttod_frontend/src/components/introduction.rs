@@ -22,7 +22,7 @@ impl Component for Introduction {
         html! {
             <ybc::Tile vertical=true ctx=TileCtx::Child>
                 <ybc::Title size=HeaderSize::Is1>{"To the Temple of Doom!"}</ybc::Title>
-                <ybc::Title size=HeaderSize::Is3>{"To Defeat the Ancient Evil!"}</ybc::Title>
+                <ybc::Subtitle size=HeaderSize::Is3>{"To Defeat the Ancient Evil!"}</ybc::Subtitle>
                 <ybc::Section>
                     <ybc::Title size=HeaderSize::Is4>{"You are an Expert Archeologist…"}</ybc::Title>
                     <p>

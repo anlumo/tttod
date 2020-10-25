@@ -67,11 +67,11 @@ body {
     }
 }
 
-.title, .modal-card-title {
+.title, .subtitle, .modal-card-title {
     font-family: 'Adventure';
-    &.is-3 {
-        color: $primary;
-    }
+}
+.subtitle {
+    color: $primary;
 }
 button {
     font-family: 'Adventure';
