@@ -859,23 +859,31 @@ impl GameManager {
                             }
                         }
                         ClientToServerMessage::AcceptFate => {
-                            if let Some(current_challenge_result) = current_challenge_result.take()
+                            if current_challenge
+                                .as_ref()
+                                .map(|challenge| challenge.player_id)
+                                == Some(player_id)
                             {
-                                if Self::check_success(
-                                    &current_challenge_result,
-                                    current_artifact_used.take(),
-                                ) {
-                                    successes += 1;
-                                } else {
-                                    failures += 1;
-                                }
-                                if Self::possessed_dice(&current_challenge_result) {
-                                    if let Some((player, _)) = self.players.get_mut(&player_id) {
-                                        player.mental_condition =
-                                            player.mental_condition.take_hit();
+                                if let Some(current_challenge_result) =
+                                    current_challenge_result.take()
+                                {
+                                    if Self::check_success(
+                                        &current_challenge_result,
+                                        current_artifact_used.take(),
+                                    ) {
+                                        successes += 1;
+                                    } else {
+                                        failures += 1;
                                     }
+                                    if Self::possessed_dice(&current_challenge_result) {
+                                        if let Some((player, _)) = self.players.get_mut(&player_id)
+                                        {
+                                            player.mental_condition =
+                                                player.mental_condition.take_hit();
+                                        }
+                                    }
+                                    current_challenge = None;
                                 }
-                                current_challenge = None;
                             }
                         }
                         ClientToServerMessage::TakeWound => {
