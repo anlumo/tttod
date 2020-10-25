@@ -50,6 +50,11 @@ impl Component for DefineEvil {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if let Some(player) = props.players.get(&props.player_id) {
+            if player.ready {
+                self.loading = true;
+            }
+        }
         self.props = props;
         true
     }
