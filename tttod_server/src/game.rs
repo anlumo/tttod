@@ -923,11 +923,11 @@ impl GameManager {
                                         let possession = Self::possessed_dice(&results);
                                         if success {
                                             successes += 1;
-                                            current_challenge_result = None;
                                             current_challenge = None;
                                         } else {
                                             current_artifact_used =
                                                 Some(player.stats.as_ref().unwrap().artifact_boon);
+                                            current_challenge_result = Some(results.clone());
                                         }
                                         self.send_to(
                                             player_id,
