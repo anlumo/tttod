@@ -9,6 +9,7 @@ use yew::prelude::*;
 pub struct CreateCharacter {
     link: ComponentLink<Self>,
     props: Props,
+    loading: bool,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -37,17 +38,24 @@ impl Component for CreateCharacter {
     type Message = Msg;
     type Properties = Props;
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, props }
+        let loading = props
+            .players
+            .get(&props.player_id)
+            .map(|player| player.ready)
+            .unwrap_or(false);
+        Self {
+            link,
+            props,
+            loading,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Ready => {
-                // fake the state until the server confirms it
-                if let Some(player) = self.props.players.get_mut(&self.props.player_id) {
-                    player.ready = true;
-                }
+                self.loading = true;
                 self.props.set_ready.emit(());
+                return true;
             }
             Msg::UpdateName(name) => {
                 let mut stats = self.props.stats.clone();
@@ -154,6 +162,11 @@ impl Component for CreateCharacter {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if let Some(player) = props.players.get(&props.player_id) {
+            if player.ready {
+                self.loading = true;
+            }
+        }
         self.props = props;
         true
     }
@@ -204,7 +217,6 @@ impl Component for CreateCharacter {
         let invalid_stats = self.props.stats.name.is_empty()
             || self.props.stats.artifact_name.is_empty()
             || self.props.stats.artifact_origin.is_empty();
-        let ready = player.map(|player| player.ready).unwrap_or(false);
         html! {
             <ybc::Tile vertical=true ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
@@ -212,7 +224,7 @@ impl Component for CreateCharacter {
                         <ybc::Title size=HeaderSize::Is1>{"Create Your Archeologist"}</ybc::Title>
                     </ybc::Tile>
                     <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Three>
-                        <ybc::Button loading=ready disabled=invalid_stats onclick=ready_callback>{"Let's Go!"}</ybc::Button>
+                        <ybc::Button loading=self.loading disabled=invalid_stats onclick=ready_callback>{"Let's Go!"}</ybc::Button>
                         <PlayerList player_id=self.props.player_id players=&self.props.players/>
                     </ybc::Tile>
                 </ybc::Tile>
@@ -225,12 +237,12 @@ impl Component for CreateCharacter {
                             <div class="field-body">
                                 <div class="field">
                                     <p class="control character-name-input">
-                                        <div>{"Dr. "}</div><ybc::Input disabled=ready name="character_name" update=update_name_callback value=self.props.stats.name.clone() placeholder="Archeologist name"/><div>{" (PhD)"}</div>
+                                        <div>{"Dr. "}</div><ybc::Input disabled=self.loading name="character_name" update=update_name_callback value=self.props.stats.name.clone() placeholder="Archeologist name"/><div>{" (PhD)"}</div>
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div class={ if ready { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
+                        <div class={ if self.loading { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
                             <div class="field-label is-normal">
                                 <label class="label">{"Speciality:"}</label>
                             </div>
@@ -238,7 +250,7 @@ impl Component for CreateCharacter {
                                 <div class="field">
                                     <p class="control speciality">
                                         {
-                                            if ready {
+                                            if self.loading {
                                                 html! { {format!("{}", speciality)} }
                                             } else {
                                                 html! {
@@ -257,7 +269,7 @@ impl Component for CreateCharacter {
                                                         {
                                                             if let Speciality::Other(speciality) = speciality {
                                                                 html! {
-                                                                    <ybc::Input disabled=ready name="other_speciality" update=update_other_speciality_callback value=speciality.clone() placeholder="which one?"/>
+                                                                    <ybc::Input disabled=self.loading name="other_speciality" update=update_other_speciality_callback value=speciality.clone() placeholder="which one?"/>
                                                                 }
                                                             } else {
                                                                 html! { <></> }
@@ -271,7 +283,7 @@ impl Component for CreateCharacter {
                                 </div>
                             </div>
                         </div>
-                        <div class={ if ready { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
+                        <div class={ if self.loading { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
                             <div class="field-label is-normal">
                                 <label class="label">{"Reputation: "}</label>
                             </div>
@@ -279,7 +291,7 @@ impl Component for CreateCharacter {
                                 <div class="field">
                                     <p class="control reputation">
                                         {
-                                            if ready {
+                                            if self.loading {
                                                 html! { {format!("{}", reputation)} }
                                             } else {
                                                 html! {
@@ -298,7 +310,7 @@ impl Component for CreateCharacter {
                                                         {
                                                             if let Reputation::Other(reputation) = reputation {
                                                                 html! {
-                                                                    <ybc::Input disabled=ready name="other_reputation" update=update_other_reputation_callback value=reputation.clone() placeholder="which one?"/>
+                                                                    <ybc::Input disabled=self.loading name="other_reputation" update=update_other_reputation_callback value=reputation.clone() placeholder="which one?"/>
                                                                 }
                                                             } else {
                                                                 html! { <></> }
@@ -312,7 +324,7 @@ impl Component for CreateCharacter {
                                 </div>
                             </div>
                         </div>
-                        <div class={ if ready { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
+                        <div class={ if self.loading { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
                             <div class="field-label is-normal">
                                 <label class="label">{"I'm"}</label>
                             </div>
@@ -320,7 +332,7 @@ impl Component for CreateCharacter {
                                 <div class="field">
                                     <p class="control">
                                         {
-                                            if ready {
+                                            if self.loading {
                                                 html! {
                                                     {
                                                         match stats {
@@ -390,15 +402,15 @@ impl Component for CreateCharacter {
                             <div class="field">
                                 <p class="control create-artifact">
                                     <div>{"A(n)"}</div>
-                                    <ybc::Input disabled=ready name="artifact_name" update=update_artifact_name_callback value=self.props.stats.artifact_name.clone() placeholder="Name"/>
+                                    <ybc::Input disabled=self.loading name="artifact_name" update=update_artifact_name_callback value=self.props.stats.artifact_name.clone() placeholder="Name"/>
                                     <div>{"discovered in"}</div>
-                                    <ybc::Input disabled=ready name="artifact_origin" update=update_artifact_origin_callback value=self.props.stats.artifact_origin.clone() placeholder="Origin"/>
+                                    <ybc::Input disabled=self.loading name="artifact_origin" update=update_artifact_origin_callback value=self.props.stats.artifact_origin.clone() placeholder="Origin"/>
                                     <div>{"."}</div>
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div class={ if ready { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
+                    <div class={ if self.loading { "field is-horizontal is-align-items-baseline" } else { "field is-horizontal" } }>
                         <div class="field-label is-normal">
                             <label class="label">{"Artifact Boon:"}</label>
                         </div>
@@ -406,7 +418,7 @@ impl Component for CreateCharacter {
                             <div class="field">
                                 <p class="control">
                                     {
-                                        if ready {
+                                        if self.loading {
                                             html! {
                                                 {
                                                     format!("{}", self.props.stats.artifact_boon)
