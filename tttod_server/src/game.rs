@@ -1073,10 +1073,17 @@ impl GameManager {
                             && !gms.contains(&challenge.player_id)
                             && clue_idx < remaining_clues.len()
                         {
-                            if let Some((player, _)) = self.players.get(&player_id) {
+                            if let Some((player, _)) = self.players.get(&challenge.player_id) {
                                 if player.condition != Condition::Dead
                                     && player.mental_condition != MentalCondition::Possessed
                                 {
+                                    self.send_to(
+                                        challenge.player_id,
+                                        ServerToClientMessage::ReceivedChallengeFinal {
+                                            challenge: challenge.clone(),
+                                            clue_idx,
+                                        },
+                                    );
                                     current_challenge = Some((challenge, clue_idx));
                                 }
                             }
