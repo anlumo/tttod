@@ -43,7 +43,7 @@ impl Component for Success {
                 <ybc::Tile vertical=false ctx=TileCtx::Child>
                     <ybc::Title size=HeaderSize::Is1>{"You Have Escaped the Temple of Doom!"}</ybc::Title>
                     <p>
-                        {"The Ancient Evil is defeated once and for all! Those alive stagger out of hte cursed temple into the bright sunlight, \
+                        {"The Ancient Evil is defeated once and for all! Those alive stagger out of the cursed temple into the bright sunlight, \
                         wondering how this exploit will affect their careers."}
                     </p>
                     <ybc::Button onclick=ready_callback>{"Publish the Groundbreaking Paper"}</ybc::Button>
