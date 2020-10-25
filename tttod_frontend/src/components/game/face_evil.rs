@@ -240,7 +240,7 @@ impl Component for FaceEvil {
                         let accept_challenge_callback = self.props.accept_challenge.clone();
                         let reject_challenge_callback = self.props.reject_challenge.clone();
                         if let Some((challenge, clue_idx)) = self.props.evil_state.challenge.as_ref() {
-                            if clue_idx < self.props.remaining_clues.len() {
+                            if *clue_idx < self.props.remaining_clues.len() {
                                 let clue = self.props.remaining_clues[*clue_idx].clone();
                                 html! {
                                     <>
