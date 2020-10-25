@@ -1,6 +1,6 @@
 use crate::{Challenge, GameState, Player, PlayerStats};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -48,8 +48,6 @@ pub enum ServerToClientMessage {
     PushState {
         players: HashMap<Uuid, Player>,
         game_state: GameState,
-        player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
-        known_clues: Vec<String>,
     },
     Questions {
         questions: Vec<(String, Option<String>)>,
@@ -58,11 +56,6 @@ pub enum ServerToClientMessage {
         clue: String,
     },
     ClueRejectionRejected,
-    ReceivedChallenge(Challenge),
-    ReceivedChallengeFinal {
-        challenge: Challenge,
-        clue_idx: usize,
-    },
     AbortedChallenge,
     ChallengeResult(ChallengeResult),
 }

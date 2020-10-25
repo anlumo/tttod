@@ -33,13 +33,10 @@ use futures::{
     sink::SinkExt,
     stream::{SplitSink, StreamExt},
 };
-use std::{
-    cell::RefCell,
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use tttod_data::{
-    Challenge, ClientToServerMessage, GameState, Player, PlayerStats, ServerToClientMessage,
+    Challenge, ChallengeResult, ClientToServerMessage, GameState, Player, PlayerStats,
+    ServerToClientMessage,
 };
 use uuid::Uuid;
 use wasm_bindgen::{closure::Closure, JsCast};
@@ -55,11 +52,9 @@ pub struct Game {
     player_id: Uuid,
     websocket: Option<(WsMeta, Rc<RefCell<SplitSink<WsStream, WsMessage>>>)>,
     players: HashMap<Uuid, Player>,
-    player_kick_votes: HashMap<Uuid, HashSet<Uuid>>,
-    known_clues: Vec<String>,
     questions: Vec<(String, String)>,
-    room_state: RoomState,
-    clue_idx: Option<usize>,
+    challenge_result: Option<ChallengeResult>,
+    clue: Option<String>,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -115,15 +110,15 @@ impl Component for Game {
         let instance = Self {
             link,
             props,
-            state: GameState::PlayerSelection,
+            state: GameState::PlayerSelection {
+                player_kick_votes: HashMap::new(),
+            },
             player_id,
             websocket: None,
             players: HashMap::new(),
-            player_kick_votes: HashMap::new(),
-            known_clues: Vec::new(),
             questions: Vec::new(),
-            room_state: RoomState::default(),
-            clue_idx: None,
+            challenge_result: None,
+            clue: None,
         };
         instance.connect_websocket();
         instance
@@ -182,14 +177,17 @@ impl Component for Game {
             }
             Msg::UseArtifact => {
                 self.send_message(ClientToServerMessage::UseArtifact);
+                self.challenge_result = None;
                 false
             }
             Msg::TakeWound => {
                 self.send_message(ClientToServerMessage::TakeWound);
+                self.challenge_result = None;
                 false
             }
             Msg::AcceptFate => {
                 self.send_message(ClientToServerMessage::AcceptFate);
+                self.challenge_result = None;
                 false
             }
             Msg::FakeSuccess => {
@@ -212,13 +210,9 @@ impl Component for Game {
                     ServerToClientMessage::PushState {
                         players,
                         game_state,
-                        player_kick_votes,
-                        known_clues,
                     } => {
                         self.state = game_state;
                         self.players = players;
-                        self.player_kick_votes = player_kick_votes;
-                        self.known_clues = known_clues;
                         true
                     }
                     ServerToClientMessage::Questions { questions } => {
@@ -229,28 +223,15 @@ impl Component for Game {
                         true
                     }
                     ServerToClientMessage::PushClue { clue } => {
-                        self.room_state.clue = Some(clue);
-                        true
-                    }
-                    ServerToClientMessage::ReceivedChallenge(challenge) => {
-                        self.room_state.challenge = Some(challenge);
-                        true
-                    }
-                    ServerToClientMessage::ReceivedChallengeFinal {
-                        challenge,
-                        clue_idx,
-                    } => {
-                        self.room_state.challenge = Some(challenge);
-                        self.clue_idx = Some(clue_idx);
+                        self.clue = Some(clue);
                         true
                     }
                     ServerToClientMessage::AbortedChallenge => {
-                        self.room_state.challenge = None;
-                        self.room_state.challenge_result = None;
+                        self.challenge_result = None;
                         true
                     }
                     ServerToClientMessage::ChallengeResult(results) => {
-                        self.room_state.challenge_result = Some(results);
+                        self.challenge_result = Some(results);
                         true
                     }
                     _ => false,
@@ -318,9 +299,9 @@ impl Component for Game {
                 if self.websocket.is_some() {
                     log::debug!("state = {:?}", self.state);
                     match &self.state {
-                        GameState::PlayerSelection => {
+                        GameState::PlayerSelection { player_kick_votes } => {
                             html! {
-                                <Lobby set_name=set_name_callback set_ready=set_ready_callback vote_kick=vote_kick_callback player_id=self.player_id players=self.players.clone() player_kick_votes=self.player_kick_votes.clone()/>
+                                <Lobby set_name=set_name_callback set_ready=set_ready_callback vote_kick=vote_kick_callback player_id=self.player_id players=self.players.clone() player_kick_votes=player_kick_votes.clone()/>
                             }
                         }
                         GameState::DefineEvil => {
@@ -343,8 +324,13 @@ impl Component for Game {
                                 <IntroduceCharacters player_id=self.player_id players=self.players.clone() set_ready=set_ready_callback/>
                             }
                         }
-                        GameState::Room { room_idx, gm, successes, failures } => {
+                        GameState::Room { room_idx, gm, successes, failures, known_clues, challenge } => {
                             let offer_challenge_callback = self.link.callback(Msg::OfferChallenge);
+                            let room_state = RoomState {
+                                challenge: challenge.clone(),
+                                challenge_result: self.challenge_result.clone(),
+                                clue: self.clue.clone(),
+                            };
                             html! {
                                 <Room
                                     player_id=self.player_id
@@ -353,8 +339,8 @@ impl Component for Game {
                                     gm=gm
                                     successes=successes
                                     failures=failures
-                                    state=self.room_state.clone()
-                                    known_clues=self.known_clues.clone()
+                                    state=room_state
+                                    known_clues=known_clues.clone()
                                     reject_secret=reject_secret_callback
                                     offer_challenge=offer_challenge_callback
                                     accept_challenge=accept_challenge_callback
@@ -370,11 +356,13 @@ impl Component for Game {
                             gms,
                             successes,
                             target_successes,
+                            challenge,
+                            chosen_clue,
                         } => {
                             let offer_challenge_final_callback = self.link.callback(|(challenge, clue_idx)| Msg::OfferChallengeFinal(challenge, clue_idx));
                             let evil_state = EvilState {
-                                challenge: self.room_state.challenge.clone().map(|challenge| (challenge, self.clue_idx.unwrap_or(0))),
-                                challenge_result: self.room_state.challenge_result.clone(),
+                                challenge: challenge.as_ref().map(|challenge| (challenge.clone(), chosen_clue.unwrap_or(0))),
+                                challenge_result: self.challenge_result.clone(),
                             };
                             html! {
                                 <FaceEvil

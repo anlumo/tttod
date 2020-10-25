@@ -189,9 +189,11 @@ impl Component for Room {
                 <ybc::Tile vertical=false ctx=TileCtx::Parent size=TileSize::Twelve>
                     {
                         if is_gm {
-                            self.props.players.iter().filter(|(&player_id, player)| {
+                            let mut players: Vec<_> = self.props.players.iter().filter(|(&player_id, player)| {
                                 player_id != self.props.player_id && player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed
-                            }).map(|(player_id, player)| {
+                            }).collect();
+                            players.sort_by(|(player_id_a, _), (player_id_b, _)| player_id_a.cmp(player_id_b));
+                            players.into_iter().map(|(player_id, player)| {
                                 let offer_challenge_callback = self.props.offer_challenge.clone();
                                 html! {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
@@ -295,6 +297,7 @@ impl Component for Room {
                             }/>
                         }
                     } else if let Some(player) = player {
+                        log::debug!("challenge = {:?}, result = {:?}", self.props.state.challenge, self.props.state.challenge_result);
                         let accept_challenge_callback = self.props.accept_challenge.clone();
                         let reject_challenge_callback = self.props.reject_challenge.clone();
                         html! {

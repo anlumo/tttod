@@ -53,11 +53,11 @@ impl Component for OfferChallenge {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props.challenge.is_none() && props.challenge.is_some() {
+        if props.challenge.is_some() {
             if let Some(show_dialog) = self.show_dialog.get() {
                 show_dialog.unchecked_ref::<web_sys::HtmlElement>().click();
             }
-        } else if self.props.challenge.is_some() && props.challenge.is_none() {
+        } else if props.challenge.is_none() {
             self.modal_bridge
                 .send(ybc::ModalCloseMsg("offer-challenge".to_owned()));
         }
