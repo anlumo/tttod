@@ -77,13 +77,16 @@ impl Component for Room {
         if self.rejected_secret.is_some() && props.state.clue != self.rejected_secret {
             self.rejected_secret = None;
         }
+        self.props = props;
+        true
+    }
+
+    fn rendered(&mut self, _first_render: bool) {
         if self.props.gm == self.props.player_id && !self.dismissed_gm_modal {
             if let Some(show) = self.show_gm_notification.get() {
                 show.unchecked_ref::<web_sys::HtmlElement>().click();
             }
         }
-        self.props = props;
-        true
     }
 
     fn view(&self) -> Html {

@@ -3,6 +3,7 @@ use crate::{components::Icon, IconName};
 use std::collections::{HashMap, HashSet};
 use tttod_data::{Challenge, ChallengeResult, Condition, MentalCondition, Player};
 use uuid::Uuid;
+use wasm_bindgen::JsCast;
 use ybc::{HeaderSize, TileCtx, TileSize};
 use yew::prelude::*;
 
@@ -62,6 +63,14 @@ impl Component for FaceEvil {
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.props = props;
         true
+    }
+
+    fn rendered(&mut self, _first_render: bool) {
+        if self.props.gms.contains(&self.props.player_id) && !self.dismissed_gm_modal {
+            if let Some(show) = self.show_gm_notification.get() {
+                show.unchecked_ref::<web_sys::HtmlElement>().click();
+            }
+        }
     }
 
     fn view(&self) -> Html {
@@ -183,7 +192,7 @@ impl Component for FaceEvil {
                                                 </ybc::MediaContent>
                                             </ybc::Media>
                                         </ybc::Box>
-                                        <p>
+                                        <p class="block">
                                             {"Once every player has been GM, the archeologists enter one final room. Here, in the in heart of the temple, \
                                             the ancient evil awakens, ready to end the world as we know it."}
                                         </p>
