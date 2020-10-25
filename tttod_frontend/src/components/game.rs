@@ -211,6 +211,24 @@ impl Component for Game {
                         players,
                         game_state,
                     } => {
+                        if let (
+                            GameState::Room {
+                                room_idx: old_room, ..
+                            },
+                            GameState::Room {
+                                room_idx: new_room, ..
+                            },
+                        ) = (&self.state, &game_state)
+                        {
+                            if old_room != new_room {
+                                self.challenge_result = None;
+                            }
+                        } else if let (GameState::Room { .. }, GameState::FinalBattle { .. }) =
+                            (&self.state, &game_state)
+                        {
+                            self.challenge_result = None;
+                        }
+
                         self.state = game_state;
                         self.players = players;
                         true
