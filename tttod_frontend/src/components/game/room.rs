@@ -1,12 +1,14 @@
 use super::{ChallengeDialog, ChallengeResultDialog, CharacterViewer, OfferChallenge, PlayerList};
-use crate::{components::Icon, IconName};
+use crate::{
+    components::{Icon, ModalDialog},
+    IconName,
+};
 use std::collections::HashMap;
 use tttod_data::{
     Challenge, ChallengeResult, Condition, MentalCondition, Player, FAILURES_NEEDED,
     SUCCESSES_NEEDED,
 };
 use uuid::Uuid;
-use wasm_bindgen::JsCast;
 use ybc::{HeaderSize, TileCtx, TileSize};
 use yew::prelude::*;
 
@@ -14,9 +16,7 @@ pub struct Room {
     link: ComponentLink<Self>,
     props: Props,
     dismissed_gm_modal: bool,
-    modal_bridge: yew::agent::Dispatcher<ybc::ModalCloser>,
     rejected_secret: Option<String>,
-    show_gm_notification: NodeRef,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -51,9 +51,7 @@ impl Component for Room {
             link,
             props,
             dismissed_gm_modal: false,
-            modal_bridge: ybc::ModalCloser::dispatcher(),
             rejected_secret: None,
-            show_gm_notification: NodeRef::default(),
         }
     }
 
@@ -61,8 +59,6 @@ impl Component for Room {
         match msg {
             Msg::DismissGMModal => {
                 self.dismissed_gm_modal = true;
-                self.modal_bridge
-                    .send(ybc::ModalCloseMsg("gm-notification".to_owned()));
                 true
             }
             Msg::RejectSecret => {
@@ -81,17 +77,7 @@ impl Component for Room {
         true
     }
 
-    fn rendered(&mut self, _first_render: bool) {
-        if self.props.gm == self.props.player_id && !self.dismissed_gm_modal {
-            if let Some(show) = self.show_gm_notification.get() {
-                show.unchecked_ref::<web_sys::HtmlElement>().click();
-            }
-        }
-    }
-
     fn view(&self) -> Html {
-        log::debug!("self.dismissed_gm_modal = {:?}", self.dismissed_gm_modal);
-        log::debug!("gm: {:?}", self.props.gm == self.props.player_id);
         let dismiss_modal = self.link.callback(|_| Msg::DismissGMModal);
         let reject_secret_handler = self.link.callback(|_| Msg::RejectSecret);
         let is_gm = self.props.gm == self.props.player_id;
@@ -223,11 +209,7 @@ impl Component for Room {
                 {
                     if is_gm {
                         html! {
-                            <ybc::ModalCard id="gm-notification" trigger={
-                                html! {
-                                    <div class="is-invisible" ref=self.show_gm_notification.clone()></div>
-                                }
-                            } title="You Are the Game Master Now!" body={
+                            <ModalDialog id="gm-notification" is_active=!self.dismissed_gm_modal title="You Are the Game Master Now!" close_callback=dismiss_modal.reform(|_| ()) body={
                                 html! {
                                     <>
                                         <ybc::Box classes="has-background-primary-light">
@@ -291,7 +273,7 @@ impl Component for Room {
                                                 html! {}
                                             }
                                         }
-                                        <ybc::Button onclick=dismiss_modal.clone()><Icon classes="icon" name=IconName::Gopuram/><span>{"My room is ready!"}</span></ybc::Button>
+                                        <ybc::Button onclick=dismiss_modal.reform(|_| ())><Icon classes="icon" name=IconName::Gopuram/><span>{"My room is ready!"}</span></ybc::Button>
                                     </>
                                 }
                             }/>

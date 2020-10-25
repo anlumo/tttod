@@ -1,7 +1,10 @@
 use super::{
     ChallengeResultDialog, CharacterViewer, FinalChallengeDialog, OfferFinalChallenge, PlayerList,
 };
-use crate::{components::Icon, IconName};
+use crate::{
+    components::{Icon, ModalDialog},
+    IconName,
+};
 use std::collections::{HashMap, HashSet};
 use tttod_data::{Challenge, ChallengeResult, Condition, MentalCondition, Player};
 use uuid::Uuid;
@@ -13,8 +16,6 @@ pub struct FaceEvil {
     link: ComponentLink<Self>,
     props: Props,
     dismissed_gm_modal: bool,
-    modal_bridge: yew::agent::Dispatcher<ybc::ModalCloser>,
-    show_gm_notification: NodeRef,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -46,8 +47,6 @@ impl Component for FaceEvil {
             link,
             props,
             dismissed_gm_modal: false,
-            modal_bridge: ybc::ModalCloser::dispatcher(),
-            show_gm_notification: NodeRef::default(),
         }
     }
 
@@ -55,8 +54,6 @@ impl Component for FaceEvil {
         match msg {
             Msg::DismissGMModal => {
                 self.dismissed_gm_modal = true;
-                self.modal_bridge
-                    .send(ybc::ModalCloseMsg("gm-notification".to_owned()));
                 true
             }
         }
@@ -65,14 +62,6 @@ impl Component for FaceEvil {
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.props = props;
         true
-    }
-
-    fn rendered(&mut self, _first_render: bool) {
-        if self.props.gms.contains(&self.props.player_id) && !self.dismissed_gm_modal {
-            if let Some(show) = self.show_gm_notification.get() {
-                show.unchecked_ref::<web_sys::HtmlElement>().click();
-            }
-        }
     }
 
     fn view(&self) -> Html {
@@ -162,11 +151,7 @@ impl Component for FaceEvil {
                 {
                     if is_gm {
                         html! {
-                            <ybc::ModalCard id="gm-notification" trigger={
-                                html! {
-                                    <div class="is-invisible" ref=self.show_gm_notification.clone()></div>
-                                }
-                            } title={
+                            <ModalDialog id="gm-notification" is_active=!self.dismissed_gm_modal close_callback=dismiss_modal.reform(|_| ()) title={
                                 if self.props.gms.len() > 1 {
                                     format!("You Are One of the {} Game Masters For the Final Battle!", self.props.gms.len())
                                 } else {
@@ -231,7 +216,7 @@ impl Component for FaceEvil {
                             } footer={
                                 html! {
                                     <>
-                                        <ybc::Button onclick=dismiss_modal.clone()><Icon classes="icon" name=IconName::Gopuram/><span>{"The Final Room is Ready!"}</span></ybc::Button>
+                                        <ybc::Button onclick=dismiss_modal.reform(|_| ())><Icon classes="icon" name=IconName::Gopuram/><span>{"The Final Room is Ready!"}</span></ybc::Button>
                                     </>
                                 }
                             }/>
