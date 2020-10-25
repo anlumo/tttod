@@ -96,6 +96,16 @@ impl MentalCondition {
     }
 }
 
+impl fmt::Display for MentalCondition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Hale => write!(f, "Hale"),
+            Self::Resisted => write!(f, "Resisted"),
+            Self::Possessed => write!(f, "Possessed"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Attribute {
     Heroic,

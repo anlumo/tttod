@@ -95,6 +95,10 @@ ol {
     list-style-position: inside;
 }
 
+.explanation {
+    text-decoration: underline dotted $primary 2px;
+}
+
 .tile.is-ancestor {
     background-color: adjust-color($scheme-main, $alpha: -0.2);
     border-radius: 5px;

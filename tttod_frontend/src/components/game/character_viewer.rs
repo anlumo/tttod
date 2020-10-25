@@ -45,6 +45,17 @@ impl Component for CharacterViewer {
                     <ybc::CardContent>
                         <ybc::Content tag="div">
                             <p>
+                                {"Physically "}
+                                <span class="has-text-weight-bold explanation" title="Hale ► Wounded ► Critical ► Dead">
+                                    {format!("{}", player.condition)}
+                                </span>
+                                {". Mentally "}
+                                <span class="has-text-weight-bold explanation" title="Hale ► Resisted ► Possessed">
+                                    {format!("{}", player.mental_condition)}
+                                </span>
+                                {"."}
+                            </p>
+                            <p>
                                 {format!("I specialize in {}. I'm known for being {}.", stats.speciality, stats.reputation)}
                             </p>
                             {
