@@ -1,4 +1,4 @@
-use super::{ChallengeResultDialog, CharacterViewer, PlayerList};
+use super::{ChallengeResultDialog, CharacterViewer, FinalChallengeDialog, PlayerList};
 use crate::{components::Icon, IconName};
 use std::collections::{HashMap, HashSet};
 use tttod_data::{Challenge, ChallengeResult, Condition, MentalCondition, Player};
@@ -137,7 +137,7 @@ impl Component for FaceEvil {
                                         <CharacterViewer classes="m-2" player=player.clone() header={
                                             if self.props.evil_state.challenge.is_none() {
                                                 html! {
-                                                    // <ChallengeDialog player_id=player_id player=player offer_challenge=offer_challenge_callback/>
+                                                    <FinalChallengeDialog remaining_clues=self.props.remaining_clues.clone() player_id=player_id player=player offer_challenge=offer_challenge_callback/>
                                                 }
                                             } else {
                                                 html! {}

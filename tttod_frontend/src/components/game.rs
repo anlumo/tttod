@@ -14,6 +14,8 @@ mod room;
 pub use room::{Room, RoomState};
 mod challenge_dialog;
 pub use challenge_dialog::ChallengeDialog;
+mod final_challenge_dialog;
+pub use final_challenge_dialog::FinalChallengeDialog;
 mod offer_challenge;
 pub use offer_challenge::OfferChallenge;
 mod challenge_result;
