@@ -119,26 +119,39 @@ impl Component for Room {
                         <PlayerList player_id=self.props.player_id players=&self.props.players/>
                     </ybc::Tile>
                 </ybc::Tile>
-                {
-                    if is_gm {
-                        if let Some(clue) = &self.props.state.clue {
+                <ybc::Tile vertical=true ctx=TileCtx::Parent>
+                    {
+                        if is_gm {
+                            if let Some(clue) = &self.props.state.clue {
+                                html! {
+                                    <ybc::Tile vertical=false ctx=TileCtx::Child>
+                                        <ybc::Box classes="m-4 has-background-primary-light">
+                                            <ybc::Title size=HeaderSize::Is5>{"Secret for This Room"}</ybc::Title>
+                                            <p>{
+                                                clue
+                                            }</p>
+                                        </ybc::Box>
+                                    </ybc::Tile>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        } else if let Some(gm) = self.props.players.get(&self.props.gm) {
                             html! {
-                                <ybc::Tile vertical=false ctx=TileCtx::Child>
-                                    <ybc::Box classes="m-4 has-background-primary-light">
-                                        <ybc::Title size=HeaderSize::Is5>{"Secret for This Room"}</ybc::Title>
-                                        <p>{
-                                            clue
-                                        }</p>
+                                <ybc::Tile vertical=false ctx=TileCtx::Child size=TileSize::Four>
+                                    <ybc::Box>
+                                        <span class="has-text-weight-bold">
+                                            {gm.name.as_str()}
+                                        </span>
+                                        {" is the GM for this room!"}
                                     </ybc::Box>
                                 </ybc::Tile>
                             }
                         } else {
                             html! {}
                         }
-                    } else {
-                        html! {}
                     }
-                }
+                </ybc::Tile>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
                     <ybc::Tile classes="pt-4" vertical=true ctx=TileCtx::Child size=TileSize::Four>
                         <ybc::Box classes="p-1">
