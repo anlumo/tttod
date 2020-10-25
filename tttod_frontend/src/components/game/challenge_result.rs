@@ -1,13 +1,12 @@
-use crate::{components::Icon, IconName};
+use crate::{
+    components::{Icon, ModalDialog},
+    IconName,
+};
 use tttod_data::{ArtifactBoon, ChallengeResult, MentalCondition, Player};
-use wasm_bindgen::JsCast;
 use yew::prelude::*;
 
 pub struct ChallengeResultDialog {
-    link: ComponentLink<Self>,
     props: Props,
-    modal_bridge: yew::agent::Dispatcher<ybc::ModalCloser>,
-    show_dialog: NodeRef,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -19,65 +18,25 @@ pub struct Props {
     pub accept_fate: yew::Callback<()>,
 }
 
-pub enum Msg {
-    AcceptFate,
-    UseArtifact,
-    TakeWound,
-}
-
 impl Component for ChallengeResultDialog {
-    type Message = Msg;
+    type Message = ();
     type Properties = Props;
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            link,
-            props,
-            modal_bridge: ybc::ModalCloser::dispatcher(),
-            show_dialog: NodeRef::default(),
-        }
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::AcceptFate => {
-                self.props.accept_fate.emit(());
-                self.modal_bridge
-                    .send(ybc::ModalCloseMsg("challenge-result".to_owned()));
-            }
-            Msg::UseArtifact => {
-                self.props.use_artifact.emit(());
-                self.modal_bridge
-                    .send(ybc::ModalCloseMsg("challenge-result".to_owned()));
-            }
-            Msg::TakeWound => {
-                self.props.take_wound.emit(());
-                self.modal_bridge
-                    .send(ybc::ModalCloseMsg("challenge-result".to_owned()));
-            }
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        if self.props.challenge_result.is_none() && props.challenge_result.is_some() {
-            if let Some(show_dialog) = self.show_dialog.get() {
-                show_dialog.unchecked_ref::<web_sys::HtmlElement>().click();
-            }
-        } else if self.props.challenge_result.is_some() && props.challenge_result.is_none() {
-            self.modal_bridge
-                .send(ybc::ModalCloseMsg("challenge-result".to_owned()));
-        }
         self.props = props;
         true
     }
 
     fn view(&self) -> Html {
         html! {
-            <ybc::ModalCard id="challenge-result" trigger={
-                html! {
-                    <div class="is-invisible" ref=self.show_dialog.clone()></div>
-                }
-            } title="Your Challenge Result" body={
+            <ModalDialog id="challenge-result" is_active=self.props.challenge_result.is_some() title="Your Challenge Result" body={
                 if let Some(challenge_result) = &self.props.challenge_result {
                     html! {
                         <>
@@ -181,26 +140,22 @@ impl Component for ChallengeResultDialog {
                 }
             } footer={
                 if let Some(challenge_result) = &self.props.challenge_result {
-                    let use_artifact = self.link.callback(|_| Msg::UseArtifact);
-                    let take_wound = self.link.callback(|_| Msg::TakeWound);
-                    let accept_fate = self.link.callback(|_| Msg::AcceptFate);
-
                     let mut buttons = Vec::new();
                     if challenge_result.can_use_artifact {
                         buttons.push(html! {
-                            <ybc::Button onclick=use_artifact><Icon classes="icon" name=IconName::ChessQueen/><span>{"Use Artifact"}</span></ybc::Button>
+                            <ybc::Button onclick=self.props.use_artifact.reform(|_| ())><Icon classes="icon" name=IconName::ChessQueen/><span>{"Use Artifact"}</span></ybc::Button>
                         });
                     }
                     if challenge_result.success {
                         buttons.push(html! {
-                            <ybc::Button classes="is-primary" onclick=accept_fate.clone()><Icon classes="icon" name=IconName::Child/><span>{"Take Success"}</span></ybc::Button>
+                            <ybc::Button classes="is-primary" onclick=self.props.accept_fate.reform(|_| ())><Icon classes="icon" name=IconName::Child/><span>{"Take Success"}</span></ybc::Button>
                         });
                     } else {
                         buttons.push(html! {
-                            <ybc::Button classes="is-danger" onclick=take_wound><Icon classes="icon" name=IconName::Wheelchair/><span>{"Take Wound"}</span></ybc::Button>
+                            <ybc::Button classes="is-danger" onclick=self.props.take_wound.reform(|_| ())><Icon classes="icon" name=IconName::Wheelchair/><span>{"Take Wound"}</span></ybc::Button>
                         });
                         buttons.push(html! {
-                            <ybc::Button classes="is-danger" onclick=accept_fate><Icon classes="icon" name=IconName::Dizzy/><span>{"Accept Failure"}</span></ybc::Button>
+                            <ybc::Button classes="is-danger" onclick=self.props.accept_fate.reform(|_| ())><Icon classes="icon" name=IconName::Dizzy/><span>{"Accept Failure"}</span></ybc::Button>
                         });
                     }
                     buttons.into_iter().collect()

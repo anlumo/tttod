@@ -6,3 +6,5 @@ pub use icon::Icon;
 mod introduction;
 pub use introduction::Introduction;
 mod game;
+mod modal_dialog;
+pub use modal_dialog::ModalDialog;
