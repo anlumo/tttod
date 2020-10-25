@@ -1,4 +1,6 @@
-use super::{ChallengeResultDialog, CharacterViewer, FinalChallengeDialog, PlayerList};
+use super::{
+    ChallengeResultDialog, CharacterViewer, FinalChallengeDialog, OfferFinalChallenge, PlayerList,
+};
 use crate::{components::Icon, IconName};
 use std::collections::{HashMap, HashSet};
 use tttod_data::{Challenge, ChallengeResult, Condition, MentalCondition, Player};
@@ -237,25 +239,34 @@ impl Component for FaceEvil {
                     } else if let Some(player) = player {
                         let accept_challenge_callback = self.props.accept_challenge.clone();
                         let reject_challenge_callback = self.props.reject_challenge.clone();
-                        html! {
-                            <>
-                                {
-                                    if self.props.evil_state.challenge_result.is_none() {
-                                        html! {
-                                            // <OfferChallenge challenge=self.props.state.challenge.clone() player=player.clone() accept_challenge=accept_challenge_callback reject_challenge=reject_challenge_callback/>
+                        if let Some((challenge, clue_idx)) = self.props.evil_state.challenge.as_ref() {
+                            if clue_idx < self.props.remaining_clues.len() {
+                                let clue = self.props.remaining_clues[*clue_idx].clone();
+                                html! {
+                                    <>
+                                        {
+                                            if self.props.evil_state.challenge_result.is_none() {
+                                                html! {
+                                                    <OfferFinalChallenge clue=clue challenge=challenge player=player.clone() accept_challenge=accept_challenge_callback reject_challenge=reject_challenge_callback/>
+                                                }
+                                            } else {
+                                                html! {}
+                                            }
                                         }
-                                    } else {
-                                        html! {}
-                                    }
+                                        <ChallengeResultDialog
+                                            challenge_result=self.props.evil_state.challenge_result.clone()
+                                            player=player.clone()
+                                            use_artifact=self.props.use_artifact.clone()
+                                            take_wound=self.props.take_wound.clone()
+                                            accept_fate=self.props.accept_fate.clone()
+                                        />
+                                    </>
                                 }
-                                <ChallengeResultDialog
-                                    challenge_result=self.props.evil_state.challenge_result.clone()
-                                    player=player.clone()
-                                    use_artifact=self.props.use_artifact.clone()
-                                    take_wound=self.props.take_wound.clone()
-                                    accept_fate=self.props.accept_fate.clone()
-                                />
-                            </>
+                            } else {
+                                html! {}
+                            }
+                        } else {
+                            html! {}
                         }
                     } else {
                         html! {}
@@ -268,6 +279,6 @@ impl Component for FaceEvil {
 
 #[derive(Debug, Clone, Default)]
 pub struct EvilState {
-    pub challenge: Option<Challenge>,
+    pub challenge: Option<(Challenge, usize)>,
     pub challenge_result: Option<ChallengeResult>,
 }

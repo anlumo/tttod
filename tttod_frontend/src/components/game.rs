@@ -18,6 +18,8 @@ mod final_challenge_dialog;
 pub use final_challenge_dialog::FinalChallengeDialog;
 mod offer_challenge;
 pub use offer_challenge::OfferChallenge;
+mod offer_final_challenge;
+pub use offer_final_challenge::OfferFinalChallenge;
 mod challenge_result;
 pub use challenge_result::ChallengeResultDialog;
 mod face_evil;
@@ -57,6 +59,7 @@ pub struct Game {
     known_clues: Vec<String>,
     questions: Vec<(String, String)>,
     room_state: RoomState,
+    clue_idx: Option<usize>,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -120,6 +123,7 @@ impl Component for Game {
             known_clues: Vec::new(),
             questions: Vec::new(),
             room_state: RoomState::default(),
+            clue_idx: None,
         };
         instance.connect_websocket();
         instance
@@ -230,6 +234,14 @@ impl Component for Game {
                     }
                     ServerToClientMessage::ReceivedChallenge(challenge) => {
                         self.room_state.challenge = Some(challenge);
+                        true
+                    }
+                    ServerToClientMessage::ReceivedChallengeFinal {
+                        challenge,
+                        clue_idx,
+                    } => {
+                        self.room_state.challenge = Some(challenge);
+                        self.clue_idx = Some(clue_idx);
                         true
                     }
                     ServerToClientMessage::AbortedChallenge => {
@@ -361,7 +373,7 @@ impl Component for Game {
                         } => {
                             let offer_challenge_final_callback = self.link.callback(|(challenge, clue_idx)| Msg::OfferChallengeFinal(challenge, clue_idx));
                             let evil_state = EvilState {
-                                challenge: self.room_state.challenge.clone(),
+                                challenge: self.room_state.challenge.clone().map(|challenge| (challenge, self.clue_idx.unwrap_or(0))),
                                 challenge_result: self.room_state.challenge_result.clone(),
                             };
                             html! {

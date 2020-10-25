@@ -3,7 +3,7 @@ use tttod_data::{Attribute, Challenge, Player};
 use wasm_bindgen::JsCast;
 use yew::prelude::*;
 
-pub struct OfferChallenge {
+pub struct OfferFinalChallenge {
     link: ComponentLink<Self>,
     props: Props,
     modal_bridge: yew::agent::Dispatcher<ybc::ModalCloser>,
@@ -14,6 +14,7 @@ pub struct OfferChallenge {
 pub struct Props {
     pub player: Player,
     pub challenge: Option<Challenge>,
+    pub clue: String,
     pub accept_challenge: Callback<()>,
     pub reject_challenge: Callback<()>,
 }
@@ -23,7 +24,7 @@ pub enum Msg {
     Abort,
 }
 
-impl Component for OfferChallenge {
+impl Component for OfferFinalChallenge {
     type Message = Msg;
     type Properties = Props;
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
@@ -39,13 +40,13 @@ impl Component for OfferChallenge {
         match msg {
             Msg::AcceptChallenge => {
                 self.modal_bridge
-                    .send(ybc::ModalCloseMsg("offer-challenge".to_owned()));
+                    .send(ybc::ModalCloseMsg("offer-final-challenge".to_owned()));
                 self.props.accept_challenge.emit(());
                 true
             }
             Msg::Abort => {
                 self.modal_bridge
-                    .send(ybc::ModalCloseMsg("offer-challenge".to_owned()));
+                    .send(ybc::ModalCloseMsg("offer-final-challenge".to_owned()));
                 self.props.reject_challenge.emit(());
                 true
             }
@@ -59,7 +60,7 @@ impl Component for OfferChallenge {
             }
         } else if self.props.challenge.is_some() && props.challenge.is_none() {
             self.modal_bridge
-                .send(ybc::ModalCloseMsg("offer-challenge".to_owned()));
+                .send(ybc::ModalCloseMsg("offer-final-challenge".to_owned()));
         }
         self.props = props;
         true
@@ -78,7 +79,7 @@ impl Component for OfferChallenge {
         let abort_challenge_callback = self.link.callback(|_| Msg::Abort);
 
         html! {
-            <ybc::ModalCard id="offer-challenge" trigger={
+            <ybc::ModalCard id="offer-final-challenge" trigger={
                 html! {
                     <div class="is-invisible" ref=self.show_dialog.clone()></div>
                 }
@@ -98,6 +99,10 @@ impl Component for OfferChallenge {
 
                     html! {
                         <>
+                            <div class="block">
+                                {"You are using the following secret:"}
+                                <p>{self.props.clue.as_str()}</p>
+                            </div>
                             <div class="block">
                                 <p>
                                     {"This challenge needs your "}
