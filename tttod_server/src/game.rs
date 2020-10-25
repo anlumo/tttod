@@ -631,11 +631,6 @@ impl GameManager {
                     } else {
                         (Vec::new(), self.players.keys().cloned().collect())
                     };
-                log::debug!(
-                    "with challenge = {:?}, without_challenge = {:?}",
-                    with_challenge,
-                    without_challenge
-                );
 
                 if !with_challenge.is_empty() {
                     self.push_state_to(
