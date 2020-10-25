@@ -227,6 +227,10 @@ impl Component for Game {
                             (&self.state, &game_state)
                         {
                             self.challenge_result = None;
+                        } else if !matches!(game_state, GameState::Room { .. })
+                            && !matches!(game_state, GameState::FinalBattle { .. })
+                        {
+                            self.challenge_result = None;
                         }
 
                         self.state = game_state;
