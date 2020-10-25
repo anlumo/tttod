@@ -189,7 +189,6 @@ impl Component for CreateCharacter {
                 _ => ArtifactBoon::Reroll,
             })
         });
-        let player = self.props.players.get(&self.props.player_id);
         let stats = 100
             * (self
                 .props
