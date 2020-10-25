@@ -5,7 +5,7 @@ use futures::{
     channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
     StreamExt,
 };
-use rand::{seq::SliceRandom, Rng, RngCore};
+use rand::{seq::SliceRandom, Rng};
 use std::collections::{HashMap, HashSet};
 use tttod_data::{
     ArtifactBoon, Attribute, Challenge, ChallengeResult, ClientToServerMessage, Condition,
