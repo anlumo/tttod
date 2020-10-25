@@ -522,6 +522,7 @@ impl GameManager {
                                     && !stats.artifact_origin.is_empty()
                                 {
                                     player.ready = true;
+                                    self.push_state_all(GameState::CharacterCreation);
                                 }
                             }
                         }
