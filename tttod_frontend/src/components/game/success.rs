@@ -42,10 +42,11 @@ impl Component for Success {
             <ybc::Tile vertical=true ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Child>
                     <ybc::Title size=HeaderSize::Is1>{"You Have Escaped the Temple of Doom!"}</ybc::Title>
-                    <p>
+                    <p class="block">
                         {"The Ancient Evil is defeated once and for all! Those alive stagger out of the cursed temple into the bright sunlight, \
                         wondering how this exploit will affect their careers."}
                     </p>
+                    <div class="success-image"></div>
                     <ybc::Button onclick=ready_callback>{"Publish the Groundbreaking Paper"}</ybc::Button>
                 </ybc::Tile>
             </ybc::Tile>

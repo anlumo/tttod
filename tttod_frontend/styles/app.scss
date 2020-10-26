@@ -214,3 +214,21 @@ tr .name {
 .gm-icon {
     text-shadow: black 0 0 4px;
 }
+
+.success-image, .failure-image {
+    background-position: center;
+    background-size: cover;
+    width: 100%;
+    height: 0;
+    margin-bottom: 1em;
+}
+
+.success-image {
+    background-image: url("../images/escape.jpg");
+    padding-top: 61.8%;
+}
+
+.failure-image {
+    background-image: url("../images/explosion.jpg");
+    padding-top: 62.8%;
+}
