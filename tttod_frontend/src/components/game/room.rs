@@ -36,6 +36,7 @@ pub struct Props {
     pub use_artifact: yew::Callback<()>,
     pub take_wound: yew::Callback<()>,
     pub accept_fate: yew::Callback<()>,
+    pub send_ready: yew::Callback<()>,
 }
 
 pub enum Msg {
@@ -82,6 +83,8 @@ impl Component for Room {
         let reject_secret_handler = self.link.callback(|_| Msg::RejectSecret);
         let is_gm = self.props.gm == self.props.player_id;
         let player = self.props.players.get(&self.props.player_id);
+
+        let room_over = self.props.successes >= SUCCESSES_NEEDED;
         html! {
             <ybc::Tile vertical=true ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
@@ -209,7 +212,7 @@ impl Component for Room {
                 {
                     if is_gm {
                         html! {
-                            <ModalDialog id="gm-notification" is_active=!self.dismissed_gm_modal title="You Are the Game Master Now!" close_callback=dismiss_modal.reform(|_| ()) body={
+                            <ModalDialog id="gm-notification" is_active=!(self.dismissed_gm_modal || room_over) title="You Are the Game Master Now!" close_callback=dismiss_modal.reform(|_| ()) body={
                                 html! {
                                     <>
                                         <ybc::Box classes="has-background-primary-light">
@@ -301,6 +304,26 @@ impl Component for Room {
                                     accept_fate=self.props.accept_fate.clone()
                                 />
                             </>
+                        }
+                    } else {
+                        html! {}
+                    }
+                }
+                {
+                    if is_gm && room_over {
+                        html! {
+                            <ModalDialog id="room-over" is_active=room_over title="The Players Have Conquered Your Room!" close_callback=self.props.send_ready.reform(|_| ()) body={
+                                html! {
+                                    <p class="block">
+                                        {"The archeologists have completed all challenges in this room. Explain how they proceed to the next one now."}
+                                    </p>
+                                }
+                            } footer={
+                                html! {
+                                    <ybc::Button onclick=self.props.send_ready.reform(|_| ())><Icon classes="icon" name=IconName::DoorOpen/><span>{"Move to Next Room"}</span></ybc::Button>
+                                }
+                            }
+                            />
                         }
                     } else {
                         html! {}

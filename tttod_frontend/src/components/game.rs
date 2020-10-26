@@ -361,6 +361,7 @@ impl Component for Game {
                         }
                         GameState::Room { room_idx, gm, successes, failures, known_clues, challenge } => {
                             let offer_challenge_callback = self.link.callback(Msg::OfferChallenge);
+                            let player_ready_callback = self.link.callback(|_| Msg::PlayerReady);
                             let room_state = RoomState {
                                 challenge: challenge.clone(),
                                 challenge_result: self.challenge_result.clone(),
@@ -383,6 +384,7 @@ impl Component for Game {
                                     use_artifact=use_artifact_callback
                                     take_wound=take_wound_callback
                                     accept_fate=accept_fate_callback
+                                    send_ready=player_ready_callback
                                 />
                             }
                         }

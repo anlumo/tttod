@@ -615,7 +615,9 @@ impl GameManager {
             let mut current_challenge_result: Option<Vec<u8>> = None;
             let mut current_artifact_used: Option<ArtifactBoon> = None;
 
-            while successes < SUCCESSES_NEEDED {
+            let mut proceed = false;
+
+            while !proceed {
                 let waiting_for = if let Some(challenge) = &current_challenge {
                     challenge.player_id
                 } else {
@@ -741,7 +743,10 @@ impl GameManager {
                     }
                     Some(InternalMessage::Message { player_id, message }) => match message {
                         ClientToServerMessage::RejectClue if player_id == gm => {
-                            if room > 0 && self.clues.len() > self.players.len() {
+                            if room > 0
+                                && self.clues.len() > self.players.len()
+                                && successes + failures == 0
+                            {
                                 // clue doesn't fit with existing lore, remove it
                                 self.clues.remove(room);
                                 clue = self.clues[room].1.clone();
@@ -757,7 +762,9 @@ impl GameManager {
                                 );
                             }
                         }
-                        ClientToServerMessage::OfferChallenge { challenge } => {
+                        ClientToServerMessage::OfferChallenge { challenge }
+                            if successes < SUCCESSES_NEEDED =>
+                        {
                             if player_id == gm && challenge.player_id != gm {
                                 if let Some((player, _)) = self.players.get(&player_id) {
                                     if player.condition != Condition::Dead
@@ -959,6 +966,11 @@ impl GameManager {
                                         );
                                     }
                                 }
+                            }
+                        }
+                        ClientToServerMessage::ReadyForGame if player_id == gm => {
+                            if successes >= SUCCESSES_NEEDED {
+                                proceed = true;
                             }
                         }
                         _ => {}
