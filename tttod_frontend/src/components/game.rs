@@ -29,6 +29,7 @@ pub use failure::Failure;
 mod success;
 pub use success::Success;
 
+use super::root::AppRoute;
 use futures::{
     sink::SinkExt,
     stream::{SplitSink, StreamExt},
@@ -44,6 +45,10 @@ use wasm_bindgen_futures::spawn_local;
 use ws_stream_wasm::{WsMessage, WsMeta, WsStream};
 use ybc::{HeaderSize, TileCtx};
 use yew::prelude::*;
+use yew_router::{
+    agent::RouteRequest::ChangeRoute,
+    prelude::{Route, RouteAgentDispatcher},
+};
 
 pub struct Game {
     link: ComponentLink<Self>,
@@ -55,6 +60,8 @@ pub struct Game {
     questions: Vec<(String, String)>,
     challenge_result: Option<ChallengeResult>,
     clue: Option<String>,
+    game_over: bool,
+    router: RouteAgentDispatcher,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -80,6 +87,7 @@ pub enum Msg {
     UseArtifact,
     TakeWound,
     AcceptFate,
+    EndGame,
     // DEBUGGING ONLY
     FakeFailure,
     FakeSuccess,
@@ -119,6 +127,8 @@ impl Component for Game {
             questions: Vec::new(),
             challenge_result: None,
             clue: None,
+            game_over: false,
+            router: RouteAgentDispatcher::new(),
         };
         instance.connect_websocket();
         instance
@@ -233,6 +243,15 @@ impl Component for Game {
                             self.challenge_result = None;
                         }
 
+                        if matches!(game_state, GameState::Victory)
+                            || matches!(game_state, GameState::Failure)
+                        {
+                            self.game_over = true;
+                            if let Some((meta, _)) = self.websocket.take() {
+                                meta.close();
+                            }
+                        }
+
                         self.state = game_state;
                         self.players = players;
                         true
@@ -264,21 +283,27 @@ impl Component for Game {
                 false
             }
             Msg::WebsocketClosed => {
-                let link = self.link.clone();
-                let closure = Closure::once_into_js(move || {
-                    link.send_message(Msg::ConnectWebsocket);
-                });
-                web_sys::window()
-                    .unwrap()
-                    .set_timeout_with_callback_and_timeout_and_arguments_0(
-                        closure.as_ref().unchecked_ref(),
-                        1000,
-                    )
-                    .unwrap();
+                if !self.game_over {
+                    let link = self.link.clone();
+                    let closure = Closure::once_into_js(move || {
+                        link.send_message(Msg::ConnectWebsocket);
+                    });
+                    web_sys::window()
+                        .unwrap()
+                        .set_timeout_with_callback_and_timeout_and_arguments_0(
+                            closure.as_ref().unchecked_ref(),
+                            1000,
+                        )
+                        .unwrap();
+                }
                 false
             }
             Msg::ConnectWebsocket => {
                 self.connect_websocket();
+                false
+            }
+            Msg::EndGame => {
+                self.router.send(ChangeRoute(Route::from(AppRoute::Index)));
                 false
             }
         }
@@ -318,7 +343,7 @@ impl Component for Game {
         html! {
             <ybc::Tile vertical=false ctx=TileCtx::Ancestor>
             {
-                if self.websocket.is_some() {
+                if self.websocket.is_some() || self.game_over {
                     log::debug!("state = {:?}", self.state);
                     match &self.state {
                         GameState::PlayerSelection { player_kick_votes } => {
@@ -405,13 +430,15 @@ impl Component for Game {
                             }
                         }
                         GameState::Victory => {
+                            let end_game_callback = self.link.callback(|_| Msg::EndGame);
                             html! {
-                                <Success set_ready=set_ready_callback/>
+                                <Success set_ready=end_game_callback/>
                             }
                         }
                         GameState::Failure => {
+                            let end_game_callback = self.link.callback(|_| Msg::EndGame);
                             html! {
-                                <Failure set_ready=set_ready_callback/>
+                                <Failure set_ready=end_game_callback/>
                             }
                         }
                     }

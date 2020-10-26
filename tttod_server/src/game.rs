@@ -1308,61 +1308,11 @@ impl GameManager {
         Ok(true)
     }
     async fn end(&mut self, victory: bool) -> Result<(), Error> {
-        let game_state = if victory {
+        self.push_state_all(if victory {
             GameState::Victory
         } else {
             GameState::Failure
-        };
-        for (player, _) in self.players.values_mut() {
-            player.ready = false;
-        }
-        self.push_state_all(game_state.clone());
-        while !self.players.values().all(|(player, _)| player.ready) {
-            match self.receiver.next().await {
-                None => {
-                    log::error!("Game failed");
-                    return Err(Error::NoPlayers);
-                }
-                Some(InternalMessage::AddClient { player_id, sender }) => {
-                    let all_players: HashMap<_, _> = self
-                        .players
-                        .iter()
-                        .map(|(id, (player, _))| (*id, player.clone()))
-                        .collect();
-                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
-                        let client_idx = senders.len();
-                        senders.push(sender);
-                        self.send_to_client(
-                            player_id,
-                            client_idx,
-                            ServerToClientMessage::PushState {
-                                players: all_players.clone(),
-                                game_state: game_state.clone(),
-                            },
-                        );
-                    } else {
-                        sender
-                            .unbounded_send(ServerToClientMessage::GameIsOngoing)
-                            .ok();
-                        sender.close_channel();
-                    }
-                }
-                Some(InternalMessage::RemoveClient { player_id }) => {
-                    if let Some((_, senders)) = self.players.get_mut(&player_id) {
-                        senders.drain_filter(|sender| sender.is_closed());
-                    }
-                }
-                Some(InternalMessage::Message { player_id, message }) => match message {
-                    ClientToServerMessage::ReadyForGame => {
-                        if let Some((player, _)) = self.players.get_mut(&player_id) {
-                            player.ready = true;
-                        }
-                        self.push_state_all(game_state.clone());
-                    }
-                    _ => {}
-                },
-            }
-        }
+        });
         Ok(())
     }
 }
