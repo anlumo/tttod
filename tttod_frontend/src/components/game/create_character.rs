@@ -400,6 +400,7 @@ impl Component for CreateCharacter {
                         <div class="field-body">
                             <div class="field">
                                 <p class="control create-artifact">
+                                    <Icon classes="icon" name=IconName::ChessQueen/>
                                     <div>{"A(n)"}</div>
                                     <ybc::Input disabled=self.loading name="artifact_name" update=update_artifact_name_callback value=self.props.stats.artifact_name.clone() placeholder="Name"/>
                                     <div>{"discovered in"}</div>

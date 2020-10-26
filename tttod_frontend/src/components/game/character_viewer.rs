@@ -72,6 +72,7 @@ impl Component for CharacterViewer {
                                 } else {
                                     html! {
                                         <p>
+                                            <Icon classes="icon" name=IconName::ChessQueen/>
                                             {"I once found the "}
                                             <span class="has-text-weight-bold">
                                                 {stats.artifact_name.as_str()}
