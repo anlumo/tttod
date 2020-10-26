@@ -1351,6 +1351,16 @@ impl GameManager {
                 // unwinnable situation
                 return Ok(false);
             }
+
+            let alive_players = self.players.iter().filter(|(player_id, (player, _))| {
+                !gms.contains(*player_id)
+                    && player.condition != Condition::Dead
+                    && player.mental_condition != MentalCondition::Possessed
+            });
+
+            if alive_players.count() == 0 {
+                return Ok(false);
+            }
         }
 
         Ok(true)
