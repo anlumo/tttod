@@ -766,7 +766,7 @@ impl GameManager {
                             if successes < SUCCESSES_NEEDED =>
                         {
                             if player_id == gm && challenge.player_id != gm {
-                                if let Some((player, _)) = self.players.get(&player_id) {
+                                if let Some((player, _)) = self.players.get(&challenge.player_id) {
                                     if player.condition != Condition::Dead
                                         && player.mental_condition != MentalCondition::Possessed
                                     {
