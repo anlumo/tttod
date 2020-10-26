@@ -609,9 +609,6 @@ impl GameManager {
             let mut successes = 0;
             let mut failures = 0;
             let mut clue = self.clues[room].1.clone();
-            for (&player_id, (player, _)) in self.players.iter_mut() {
-                player.ready = player_id != gm;
-            }
             self.send_to(gm, ServerToClientMessage::PushClue { clue: clue.clone() });
 
             let mut current_challenge: Option<Challenge> = None;
@@ -619,6 +616,15 @@ impl GameManager {
             let mut current_artifact_used: Option<ArtifactBoon> = None;
 
             while successes < SUCCESSES_NEEDED {
+                let waiting_for = if let Some(challenge) = &current_challenge {
+                    challenge.player_id
+                } else {
+                    gm
+                };
+                for (&player_id, (player, _)) in self.players.iter_mut() {
+                    player.ready = player_id != waiting_for;
+                }
+
                 let (with_challenge, without_challenge): (Vec<Uuid>, Vec<Uuid>) =
                     if let Some(challenge) = current_challenge.as_ref() {
                         self.players.keys().partition(|id| {
@@ -991,6 +997,15 @@ impl GameManager {
         let mut current_artifact_used: Option<ArtifactBoon> = None;
 
         while successes < target_successes {
+            let waiting_for = if let Some((challenge, _)) = &current_challenge {
+                std::iter::once(challenge.player_id).collect()
+            } else {
+                gms.clone()
+            };
+            for (player_id, (player, _)) in self.players.iter_mut() {
+                player.ready = !waiting_for.contains(player_id);
+            }
+
             let (with_challenge, without_challenge): (Vec<Uuid>, Vec<Uuid>) =
                 self.players.keys().partition(|id| {
                     if gms.contains(*id) {
