@@ -37,6 +37,16 @@ This will run the development environment (and also install the dependencies and
 npm run-script build
 ```
 
+### Deployment
+
+The backend can serve the static files as well. When you run
+
+```sh
+npm run-script build
+```
+
+to build the frontend, the static files are stored in `tttod_frontend/dist`. Copy the content of this directory to wherever you want to serve the files from. Then edit `config.yaml` to point to that directory (`server.static_path`).
+
 ## Using the System
 
 Most of the things should be self-explanatory and most of the text is included on the web pages anyways, but it helps to read the original rules in full to know what's going on (it's not a long document anyways). If you navigate to the main path of the web site, you can enter a game name. Every player who enters the same name will participate in the same game. You need 3 to 5 players to proceed, and the server does verify this number.
