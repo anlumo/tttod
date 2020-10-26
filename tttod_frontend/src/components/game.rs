@@ -450,7 +450,7 @@ impl Game {
         let player_id = self.player_id;
         spawn_local(async move {
             let base = {
-                let host = "localhost:8081"; //web_sys::window().unwrap().location().host().unwrap();
+                let host = web_sys::window().unwrap().location().host().unwrap();
                 if web_sys::window().unwrap().location().protocol().unwrap() == "https:" {
                     format!("wss://{}", host)
                 } else {
