@@ -32,3 +32,5 @@ logging:
 server:
   address: 127.0.0.1:8081
   base: http://localhost:8081
+  static_path: tttod_frontend/dist
+  index: index.html

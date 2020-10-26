@@ -1,10 +1,17 @@
 use serde::{Deserialize, Serialize};
-use std::{error::Error, fs::read_to_string, net::SocketAddr, path::Path};
+use std::{
+    error::Error,
+    fs::read_to_string,
+    net::SocketAddr,
+    path::{Path, PathBuf},
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Server {
     pub address: Option<SocketAddr>,
     pub base: Option<String>,
+    pub static_path: Option<PathBuf>,
+    pub index: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]

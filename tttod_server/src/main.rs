@@ -1,6 +1,12 @@
 #![feature(drain_filter, map_into_keys_values, slice_partition_dedup)]
 #![allow(clippy::single_match, clippy::naive_bytecount)]
-use actix_web::{get, middleware, App, HttpServer, Responder};
+use actix_files::{Files, NamedFile};
+use actix_service::fn_service;
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    middleware, App, HttpServer,
+};
+use futures_util::future::{err, ok};
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -36,11 +42,6 @@ struct Opt {
     base: Option<String>,
 }
 
-#[get("/")]
-async fn index() -> impl Responder {
-    "Hello World!"
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let opt = Opt::from_args();
@@ -63,12 +64,39 @@ async fn main() -> std::io::Result<()> {
     let games: Games = Arc::new(Mutex::new(HashMap::new()));
 
     HttpServer::new(move || {
-        App::new()
+        let mut app = App::new()
             .data(config.clone())
             .data(games.clone())
             .wrap(middleware::Logger::default())
-            .service(websocket::index)
-            .service(index)
+            .service(websocket::index);
+        if let Some(path) = config.server.static_path.as_deref() {
+            let mut index = path.to_owned();
+            index.push(config.server.index.as_deref().unwrap_or("index.html"));
+            let index_factory = fn_service(move |req: ServiceRequest| {
+                let (req, _) = req.into_parts();
+                let file = match NamedFile::open(&index) {
+                    Ok(file) => file,
+                    Err(error) => return err(error.into()),
+                };
+                let response = match file
+                    .use_etag(true)
+                    .use_last_modified(true)
+                    .into_response(&req)
+                {
+                    Ok(response) => response,
+                    Err(error) => return err(error),
+                };
+                ok(ServiceResponse::new(req, response))
+            });
+            app = app.default_service(
+                Files::new("/", path)
+                    .use_etag(true)
+                    .use_last_modified(true)
+                    .index_file(config.server.index.as_deref().unwrap_or("index.html"))
+                    .default_handler(index_factory),
+            );
+        }
+        app
     })
     .bind(address)?
     .run()
