@@ -18,7 +18,7 @@ logging:
           kind: fixed_window
           base: 1
           count: 5
-          pattern: "dungeonfog.{}.log"
+          pattern: "ttod.{}.log"
       encoder:
         pattern: "{d} [{f}:{L}] {l} - {h({m})}{n}"
 
