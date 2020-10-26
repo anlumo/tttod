@@ -43,13 +43,13 @@ Most of the things should be self-explanatory and most of the text is included o
 
 ### Licenses & References
 
-The sourcecode in this repository is licensed under the AGPLv3. See [COPYING.txt](COPYING.txt) in this directory for more information.
+The sourcecode (and only the sourcecode!) in this repository is licensed under the AGPLv3. See [COPYING.txt](COPYING.txt) in this directory for more information.
 
-Most of the text visible to the user has been copied from the original game linked in the first section. Permission has been kindly granted under the limitation that the software author earns no money from this work and that the original source is referenced. These terms have been complied with to the best of the ability of the software author.
+Most of the text visible to the user has been copied from the original game linked in the first section. Permission has been kindly granted under the limitation that the software author earns no money from this work and that the original source is referenced. These terms have been complied with to the best of the ability of the software author. However, these parts are thus *not* licensed under the AGPLv3!
 
-The images and fonts have been taken from various online sources under different licenses. You can find them here:
+The images and fonts have been taken from various online sources under different licenses. Notably, the file named `explosion.jpg` is also only available for non-commercial purposes. You can find all of them here:
 
-### Background Images
+### Images
 
 * https://www.pexels.com/photo/horse-with-trailer-in-front-of-petra-1631665/
 * https://www.maxpixels.net/Cavern-Light-Escape-Cave-Ocean-Exit-View-Travel-4971298
