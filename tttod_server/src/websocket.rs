@@ -65,18 +65,32 @@ pub async fn index(
     req: HttpRequest,
     stream: web::Payload,
 ) -> Result<HttpResponse, Error> {
-    let game = {
+    let mut game = {
         games
             .lock()
             .map_err(|_| Error::MutexPoisoned)?
-            .entry(game_name)
+            .entry(game_name.clone())
             .or_default()
             .clone()
     };
     let (sender, receiver) = unbounded();
-    game.as_ref()
+    if let Err(err) = game
+        .as_ref()
         .unbounded_send(InternalMessage::AddClient { player_id, sender })
-        .map_err(|err| Error::UnableToJoin(err.into_send_error()))?;
+    {
+        if err.is_disconnected() {
+            game = Game::default();
+            games
+                .lock()
+                .map_err(|_| Error::MutexPoisoned)?
+                .insert(game_name, game.clone());
+            game.as_ref()
+                .unbounded_send(err.into_inner())
+                .map_err(|err| Error::UnableToJoin(err.into_send_error()))?;
+        } else {
+            return Err(Error::UnableToJoin(err.into_send_error()));
+        }
+    }
     Ok(ws::start(
         GameSocket {
             player_id,
