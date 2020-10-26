@@ -784,24 +784,18 @@ impl GameManager {
                             }
                         }
                         ClientToServerMessage::ChallengeAccepted => {
-                            if let Some((player, _)) = self.players.get(&player_id) {
+                            if let Some((player, _)) = self.players.get_mut(&player_id) {
                                 if let Some(challenge) = &current_challenge {
                                     if challenge.player_id == player_id {
-                                        let dice_count = if let Some((player, _)) =
-                                            self.players.get(&player_id)
-                                        {
-                                            player
-                                                .stats
-                                                .as_ref()
-                                                .unwrap()
-                                                .attributes
-                                                .get(&challenge.attribute)
-                                                .unwrap()
-                                                + if challenge.speciality_applies { 1 } else { 0 }
-                                                + if challenge.reputation_applies { 1 } else { 0 }
-                                        } else {
-                                            0
-                                        };
+                                        let dice_count = player
+                                            .stats
+                                            .as_ref()
+                                            .unwrap()
+                                            .attributes
+                                            .get(&challenge.attribute)
+                                            .unwrap()
+                                            + if challenge.speciality_applies { 1 } else { 0 }
+                                            + if challenge.reputation_applies { 1 } else { 0 };
                                         let mut can_use_artifact = false;
                                         let results = Self::roll_d6(dice_count as _);
                                         let success = Self::check_success(&results, None);
@@ -834,6 +828,12 @@ impl GameManager {
                                                     }
                                                 }
                                             }
+                                        } else if success && possession {
+                                            // Nothing the player can do about this result
+                                            successes += 1;
+                                            current_challenge = None;
+                                            player.mental_condition =
+                                                player.mental_condition.take_hit();
                                         }
                                         if !success
                                             || (!player.artifact_used
