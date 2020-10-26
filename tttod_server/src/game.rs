@@ -124,7 +124,9 @@ impl GameManager {
     }
     fn roll_d6(count: usize) -> Vec<u8> {
         let mut rng = rand::thread_rng();
-        (0..count).map(|_| rng.gen_range(1, 7)).collect()
+        let result = (0..count).map(|_| rng.gen_range(1, 7)).collect();
+        log::info!("Roll result = {:?}", result);
+        result
     }
     fn possessed_dice(dice: &[u8]) -> bool {
         let ones = dice.iter().filter(|die| **die == 1).count();
@@ -899,7 +901,13 @@ impl GameManager {
                                         }
                                     }
                                     current_challenge = None;
+                                } else {
+                                    log::error!("Accepted fate, but there was no current challenge result available.");
                                 }
+                            } else {
+                                log::error!(
+                                    "Accepted fate by someone who wasn't challenged at the moment."
+                                );
                             }
                         }
                         ClientToServerMessage::TakeWound => {
