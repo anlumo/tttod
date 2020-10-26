@@ -68,7 +68,7 @@ impl Component for DefineEvil {
                         <ybc::Title size=HeaderSize::Is1>{"Define the Evil"}</ybc::Title>
                     </ybc::Tile>
                     <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Four>
-                        <ybc::Button loading=self.loading disabled=self.props.questions.iter().any(|(q, a)| a.is_empty()) onclick=ready_callback>{"Look Into the Mirror"}</ybc::Button>
+                        <ybc::Button loading=self.loading disabled=self.props.questions.iter().any(|(q, a)| a.is_empty()) onclick=ready_callback><Icon classes="icon" name=IconName::ChalkboardTeacher/><span>{"Look Into the Mirror"}</span></ybc::Button>
                         <PlayerList player_id=self.props.player_id players=&self.props.players/>
                     </ybc::Tile>
                 </ybc::Tile>

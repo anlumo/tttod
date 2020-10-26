@@ -1,4 +1,5 @@
 use super::{CharacterViewer, PlayerList};
+use crate::{components::Icon, IconName};
 use std::collections::HashMap;
 use tttod_data::Player;
 use uuid::Uuid;
@@ -58,7 +59,7 @@ impl Component for IntroduceCharacters {
                         <ybc::Title size=HeaderSize::Is1>{"Introduce Your Archeologists"}</ybc::Title>
                     </ybc::Tile>
                     <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Three>
-                        <ybc::Button loading=self.loading onclick=ready_callback>{"Enter the Temple"}</ybc::Button>
+                        <ybc::Button loading=self.loading onclick=ready_callback><Icon classes="icon" name=IconName::Gopuram/><span>{"Enter the Temple"}</span></ybc::Button>
                         <PlayerList player_id=self.props.player_id players=&self.props.players/>
                     </ybc::Tile>
                 </ybc::Tile>

@@ -93,7 +93,7 @@ impl Component for SelectGame {
                                 </span>
                             </ybc::Field>
                             <ybc::Field>
-                                <ybc::Button disabled=self.game_name.is_empty() onclick=game_callback>{"Prepare the Expedition"}</ybc::Button>
+                                <ybc::Button disabled=self.game_name.is_empty() onclick=game_callback><Icon classes="icon" name=IconName::Hiking/><span>{"Prepare the Expedition"}</span></ybc::Button>
                             </ybc::Field>
                         </ybc::Section>
                     </ybc::Tile>

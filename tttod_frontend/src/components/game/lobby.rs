@@ -128,7 +128,7 @@ impl Component for Lobby {
                                 </span>
                         </ybc::Field>
                             <ybc::Field>
-                                <ybc::Button loading=self.loading disabled=self.player_name.is_empty() onclick=game_callback>{"Face the Evil"}</ybc::Button>
+                                <ybc::Button loading=self.loading disabled=self.player_name.is_empty() onclick=game_callback><Icon classes="icon" name=IconName::BookDead/><span>{"Face the Evil"}</span></ybc::Button>
                             </ybc::Field>
                         </ybc::Section>
                     </ybc::Tile>

@@ -223,7 +223,7 @@ impl Component for CreateCharacter {
                         <ybc::Title size=HeaderSize::Is1>{"Create Your Archeologist"}</ybc::Title>
                     </ybc::Tile>
                     <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Three>
-                        <ybc::Button loading=self.loading disabled=invalid_stats onclick=ready_callback>{"Let's Go!"}</ybc::Button>
+                        <ybc::Button loading=self.loading disabled=invalid_stats onclick=ready_callback><Icon classes="icon" name=IconName::Mountain/><span>{"Let's Go!"}</span></ybc::Button>
                         <PlayerList player_id=self.props.player_id players=&self.props.players/>
                     </ybc::Tile>
                 </ybc::Tile>
