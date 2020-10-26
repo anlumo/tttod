@@ -248,7 +248,9 @@ impl Component for Game {
                         {
                             self.game_over = true;
                             if let Some((meta, _)) = self.websocket.take() {
-                                meta.close();
+                                spawn_local(async move {
+                                    meta.close().await.ok();
+                                });
                             }
                         }
 

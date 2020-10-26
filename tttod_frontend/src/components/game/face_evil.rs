@@ -8,7 +8,6 @@ use crate::{
 use std::collections::{HashMap, HashSet};
 use tttod_data::{Challenge, ChallengeResult, Condition, MentalCondition, Player};
 use uuid::Uuid;
-use wasm_bindgen::JsCast;
 use ybc::{HeaderSize, TileCtx, TileSize};
 use yew::prelude::*;
 
