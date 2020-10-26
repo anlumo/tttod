@@ -607,7 +607,7 @@ impl GameManager {
         let mut gms: Vec<Uuid> = self.players.keys().cloned().collect();
         gms.shuffle(&mut rng);
 
-        for (room, gm) in gms.into_iter().enumerate() {
+        for (room, &gm) in gms.iter().enumerate() {
             let mut successes = 0;
             let mut failures = 0;
             let mut clue = self.clues[room].1.clone();
@@ -985,6 +985,25 @@ impl GameManager {
                     },
                 }
                 if failures >= FAILURES_NEEDED {
+                    return Ok(false);
+                }
+                let alive_players: Vec<Uuid> = self
+                    .players
+                    .iter()
+                    .filter_map(|(&player_id, (player, _))| {
+                        if player.condition != Condition::Dead
+                            && player.mental_condition != MentalCondition::Possessed
+                        {
+                            Some(player_id)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                if alive_players.is_empty() // everybody is dead
+                    || (alive_players.len() == 1 && gms[if proceed { room+1 } else { room }..].contains(&alive_players[0]))
+                // there's only a single player left and that player is supposed to GM the current or a future room
+                {
                     return Ok(false);
                 }
             }
