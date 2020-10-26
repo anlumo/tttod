@@ -56,7 +56,15 @@ impl Component for CharacterViewer {
                                 {"."}
                             </p>
                             <p>
-                                {format!("I specialize in {}. I'm known for being {}.", stats.speciality, stats.reputation)}
+                                {"I specialize in "}
+                                <span class="has-text-weight-bold">
+                                    {format!("{}", stats.speciality)}
+                                </span>
+                                {". I'm known for being "}
+                                <span class="has-text-weight-bold">
+                                    {format!("{}", stats.reputation)}
+                                </span>
+                                {"."}
                             </p>
                             {
                                 if player.artifact_used {
@@ -64,7 +72,15 @@ impl Component for CharacterViewer {
                                 } else {
                                     html! {
                                         <p>
-                                            {format!("I once found the {} in {}. ", stats.artifact_name, stats.artifact_origin)}
+                                            {"I once found the "}
+                                            <span class="has-text-weight-bold">
+                                                {stats.artifact_name.as_str()}
+                                            </span>
+                                            {" in "}
+                                            <span class="has-text-weight-bold">
+                                                {stats.artifact_origin.as_str()}
+                                            </span>
+                                            {". "}
                                             {
                                                 match stats.artifact_boon {
                                                     ArtifactBoon::Reroll => "It allows me to reroll once.",

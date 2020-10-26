@@ -96,7 +96,9 @@ ol {
 }
 
 .explanation {
-    text-decoration: underline dotted $primary 2px;
+    text-decoration: underline dotted $text;
+    text-decoration-skip-ink: none;
+    cursor: help;
 }
 
 .tile.is-ancestor {
