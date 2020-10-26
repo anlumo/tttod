@@ -2,7 +2,6 @@ use ybc::{HeaderSize, TileCtx};
 use yew::prelude::*;
 
 pub struct Success {
-    link: ComponentLink<Self>,
     props: Props,
 }
 
@@ -11,24 +10,15 @@ pub struct Props {
     pub set_ready: Callback<()>,
 }
 
-pub enum Msg {
-    Ready,
-}
-
 impl Component for Success {
-    type Message = Msg;
+    type Message = ();
     type Properties = Props;
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, props }
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self { props }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Ready => {
-                self.props.set_ready.emit(());
-                false
-            }
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -37,7 +27,6 @@ impl Component for Success {
     }
 
     fn view(&self) -> Html {
-        let ready_callback = self.link.callback(|_| Msg::Ready);
         html! {
             <ybc::Tile vertical=true ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Child>
@@ -47,7 +36,7 @@ impl Component for Success {
                         wondering how this exploit will affect their careers."}
                     </p>
                     <div class="success-image"></div>
-                    <ybc::Button onclick=ready_callback>{"Publish the Groundbreaking Paper"}</ybc::Button>
+                    <ybc::Button onclick=self.props.set_ready.reform(|_| ())>{"Publish the Groundbreaking Paper"}</ybc::Button>
                 </ybc::Tile>
             </ybc::Tile>
         }
