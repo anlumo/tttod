@@ -955,12 +955,6 @@ impl GameManager {
                                 }
                             }
                         }
-                        ClientToServerMessage::FakeFailure => {
-                            failures += 1;
-                        }
-                        ClientToServerMessage::FakeSuccess => {
-                            successes += 1;
-                        }
                         _ => {}
                     },
                 }
