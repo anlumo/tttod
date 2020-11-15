@@ -42,6 +42,7 @@ pub struct Props {
 pub enum Msg {
     DismissGMModal,
     RejectSecret,
+    ShowGMModalAgain,
 }
 
 impl Component for Room {
@@ -66,6 +67,10 @@ impl Component for Room {
                 self.rejected_secret = self.props.state.clue.clone();
                 self.props.reject_secret.emit(());
                 false
+            }
+            Msg::ShowGMModalAgain => {
+                self.dismissed_gm_modal = false;
+                true
             }
         }
     }
@@ -112,13 +117,15 @@ impl Component for Room {
                     {
                         if is_gm {
                             if let Some(clue) = &self.props.state.clue {
+                                let show_hints_again_handler = self.link.callback(|_| Msg::ShowGMModalAgain);
                                 html! {
                                     <ybc::Tile vertical=false ctx=TileCtx::Child>
                                         <ybc::Box classes="m-4 has-background-primary-light">
-                                            <ybc::Title size=HeaderSize::Is5>{"Secret for This Room"}</ybc::Title>
-                                            <p>{
-                                                clue
-                                            }</p>
+                                            <ybc::Title classes="is-flex is-align-items-center" size=HeaderSize::Is5>
+                                                {"Secret for This Room"}
+                                                <ybc::Button classes="ml-3 is-primary is-light is-ghost" onclick=show_hints_again_handler><Icon name=IconName::QuestionCircle/></ybc::Button>
+                                            </ybc::Title>
+                                            <p>{ clue }</p>
                                         </ybc::Box>
                                     </ybc::Tile>
                                 }
