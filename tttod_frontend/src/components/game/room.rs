@@ -215,12 +215,12 @@ impl Component for Room {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
                                         <CharacterViewer player=player.clone()/>
                                     </ybc::Tile>
-                                    <ybc::Tile vertical=true ctx=TileCtx::Parent size=TileSize::Twelve>
+                                    <ybc::Tile vertical=true ctx=TileCtx::Parent size=TileSize::Six>
                                         {
                                             for players.into_iter().map(|(player_id, player)| {
                                                 let offer_challenge_callback = self.props.offer_challenge.clone();
                                                 html! {
-                                                    <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
+                                                    <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Twelve>
                                                         <CharacterViewer classes="m-2" player=player.clone() brief=true/>
                                                     </ybc::Tile>
                                                 }
