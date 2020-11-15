@@ -240,6 +240,26 @@ impl Component for Room {
                             <ModalDialog id="gm-notification" is_active=!(self.dismissed_gm_modal || room_over) title="You Are the Game Master Now!" close_callback=dismiss_modal.reform(|_| ()) body={
                                 html! {
                                     <>
+                                        {
+                                            if !self.props.known_clues.is_empty() {
+                                                html! {
+                                                    <ybc::Box>
+                                                        <ybc::Title size=HeaderSize::Is5>{"Known Secrets"}</ybc::Title>
+                                                        <ol>
+                                                            {
+                                                                for self.props.known_clues.iter().map(|clue| {
+                                                                    html! {
+                                                                        <li>{clue}</li>
+                                                                    }
+                                                                })
+                                                            }
+                                                        </ol>
+                                                    </ybc::Box>
+                                                }
+                                            } else {
+                                                html! {}
+                                            }
+                                        }
                                         <ybc::Box classes="has-background-primary-light">
                                             <ybc::Media>
                                                 <ybc::MediaLeft>
