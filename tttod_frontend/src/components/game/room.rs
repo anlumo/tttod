@@ -199,10 +199,28 @@ impl Component for Room {
                                 }
                             }).collect()
                         } else if let Some(player) = player {
+                            let mut players: Vec<_> = self.props.players.iter().filter(|(&player_id, player)| {
+                                player_id != self.props.player_id && player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed
+                            }).collect();
+                            players.sort_by(|(player_id_a, _), (player_id_b, _)| player_id_a.cmp(player_id_b));
                             html! {
-                                <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
-                                    <CharacterViewer player=player.clone()/>
-                                </ybc::Tile>
+                                <>
+                                    <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
+                                        <CharacterViewer player=player.clone()/>
+                                    </ybc::Tile>
+                                    <ybc::Tile vertical=true ctx=TileCtx::Parent size=TileSize::Twelve>
+                                        {
+                                            for players.into_iter().map(|(player_id, player)| {
+                                                let offer_challenge_callback = self.props.offer_challenge.clone();
+                                                html! {
+                                                    <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
+                                                        <CharacterViewer classes="m-2" player=player.clone() brief=true/>
+                                                    </ybc::Tile>
+                                                }
+                                            })
+                                        }
+                                    </ybc::Tile>
+                                </>
                             }
                         } else {
                             html! {}

@@ -13,6 +13,8 @@ pub struct Props {
     pub header: Html,
     #[prop_or_default]
     pub classes: Option<String>,
+    #[prop_or_default]
+    pub brief: bool,
 }
 
 impl Component for CharacterViewer {
@@ -44,17 +46,25 @@ impl Component for CharacterViewer {
                     </ybc::CardHeader>
                     <ybc::CardContent>
                         <ybc::Content tag="div">
-                            <p>
-                                {"Physically "}
-                                <span class="has-text-weight-bold explanation" title="Hale ► Wounded ► Critical ► Dead">
-                                    {format!("{}", player.condition)}
-                                </span>
-                                {". Mentally "}
-                                <span class="has-text-weight-bold explanation" title="Hale ► Resisted ► Possessed">
-                                    {format!("{}", player.mental_condition)}
-                                </span>
-                                {"."}
-                            </p>
+                            {
+                                if !self.props.brief {
+                                    html! {
+                                        <p>
+                                            {"Physically "}
+                                            <span class="has-text-weight-bold explanation" title="Hale ► Wounded ► Critical ► Dead">
+                                                {format!("{}", player.condition)}
+                                            </span>
+                                            {". Mentally "}
+                                            <span class="has-text-weight-bold explanation" title="Hale ► Resisted ► Possessed">
+                                                {format!("{}", player.mental_condition)}
+                                            </span>
+                                            {"."}
+                                        </p>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            }
                             <p>
                                 {"I specialize in "}
                                 <span class="has-text-weight-bold">
@@ -67,7 +77,7 @@ impl Component for CharacterViewer {
                                 {"."}
                             </p>
                             {
-                                if player.artifact_used {
+                                if player.artifact_used || self.props.brief {
                                     html! {}
                                 } else {
                                     html! {
@@ -96,50 +106,58 @@ impl Component for CharacterViewer {
                             }
                         </ybc::Content>
                     </ybc::CardContent>
-                    <ybc::CardFooter>
-                        <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
+                    {
+                        if !self.props.brief {
                             html! {
-                                <>
-                                    <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Heroic)/>
-                                    {" Heroic"}
-                                </>
+                                <ybc::CardFooter>
+                                    <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
+                                        html! {
+                                            <>
+                                                <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Heroic)/>
+                                                {" Heroic"}
+                                            </>
+                                        }
+                                    }>
+                                        <div class="dropdown-item">
+                                            <p>
+                                                { "Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil." }
+                                            </p>
+                                        </div>
+                                    </ybc::Dropdown>
+                                    <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
+                                        html! {
+                                            <>
+                                                <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Booksmart)/>
+                                                {" Booksmart"}
+                                            </>
+                                        }
+                                    }>
+                                        <div class="dropdown-item">
+                                            <p>
+                                                { "Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge." }
+                                            </p>
+                                        </div>
+                                    </ybc::Dropdown>
+                                    <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
+                                        html! {
+                                            <>
+                                                <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Streetwise)/>
+                                                {" Streetwise"}
+                                            </>
+                                        }
+                                    }>
+                                        <div class="dropdown-item">
+                                            <p>
+                                                { "Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics." }
+                                            </p>
+                                        </div>
+                                    </ybc::Dropdown>
+                                </ybc::CardFooter>
                             }
-                        }>
-                            <div class="dropdown-item">
-                                <p>
-                                    { "Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil." }
-                                </p>
-                            </div>
-                        </ybc::Dropdown>
-                        <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
-                            html! {
-                                <>
-                                    <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Booksmart)/>
-                                    {" Booksmart"}
-                                </>
-                            }
-                        }>
-                            <div class="dropdown-item">
-                                <p>
-                                    { "Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge." }
-                                </p>
-                            </div>
-                        </ybc::Dropdown>
-                        <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
-                            html! {
-                                <>
-                                    <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Streetwise)/>
-                                    {" Streetwise"}
-                                </>
-                            }
-                        }>
-                            <div class="dropdown-item">
-                                <p>
-                                    { "Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics." }
-                                </p>
-                            </div>
-                        </ybc::Dropdown>
-                    </ybc::CardFooter>
+                        } else {
+                            html! {}
+                        }
+                    }
                 </ybc::Card>
             }
         } else {
