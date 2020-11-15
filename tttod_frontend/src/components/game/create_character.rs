@@ -395,6 +395,36 @@ impl Component for CreateCharacter {
                             </ybc::Card>
                         </ybc::Tile>
                     </ybc::Tile>
+                    <ybc::Tile vertical=false ctx=TileCtx::Child>
+                        <ybc::Card classes="p-4">
+                            <ybc::Title size=HeaderSize::Is4>{"What does this mean?"}</ybc::Title>
+                            <p class="block">
+                                {
+                                    "The rules for challenges are: You roll a d6 pool, and if there's at least one 6, you succeed. The number of dice depends
+                                    on your stats:"
+                                }
+                            </p>
+                            <p class="block">
+                                {
+                                    "If you have only one defining attribute (only Heroic, only Booksmart or only Streetwise), you get 3 dice in that attribute
+                                    and 1 in the others. If you have two of them, you get 2 dice each and 1 in the not mentioned one."
+                                }
+                            </p>
+                            <p class="block">
+                                {
+                                    "If your speciality applies to the roll (GM's discretion), you get one extra die. If you live up to your reputation, you also
+                                    get an extra die. (These two are independent from each other.)"
+                                }
+                            </p>
+                            <p class="block">
+                                {
+                                    "If a roll result contains two 1s or two 2s, the Ancient Evil tries to take over your mind. You can resist this the first time,
+                                    but after the second time your character is controlled by the Ancient Evil and for the rest of the game you can only participate
+                                    as a GM."
+                                }
+                            </p>
+                        </ybc::Card>
+                    </ybc::Tile>
                     <ybc::Title size=HeaderSize::Is2>{"Artifact"}</ybc::Title>
                     <div class="field is-horizontal">
                         <div class="field-body">
@@ -439,6 +469,13 @@ impl Component for CreateCharacter {
                             </div>
                         </div>
                     </div>
+                    <ybc::Tile vertical=false ctx=TileCtx::Child>
+                        <ybc::Card classes="p-2">
+                            <p>
+                                { "The artifact is a one-time use item you can activate after a roll to avert disaster." }
+                            </p>
+                        </ybc::Card>
+                    </ybc::Tile>
                 </ybc::Tile>
             </ybc::Tile>
         }
