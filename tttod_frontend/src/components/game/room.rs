@@ -207,7 +207,7 @@ impl Component for Room {
                             }).collect()
                         } else if let Some(player) = player {
                             let mut players: Vec<_> = self.props.players.iter().filter(|(&player_id, player)| {
-                                player_id != self.props.player_id && player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed
+                                player_id != self.props.player_id && player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed && player_id != self.props.gm
                             }).collect();
                             players.sort_by(|(player_id_a, _), (player_id_b, _)| player_id_a.cmp(player_id_b));
                             html! {
