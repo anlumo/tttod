@@ -121,6 +121,15 @@ impl Component for CharacterViewer {
                                         <div class="dropdown-item">
                                             <p>
                                                 { "Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil." }
+                                                {
+                                                    if let Some(stat) = stats.attributes.get(&Attribute::Heroic) {
+                                                        html! {
+                                                            <p class="has-text-weight-bold">{ format!("{} dice", stat) }</p>
+                                                        }
+                                                    } else {
+                                                        html! {}
+                                                    }
+                                                }
                                             </p>
                                         </div>
                                     </ybc::Dropdown>
@@ -135,6 +144,15 @@ impl Component for CharacterViewer {
                                         <div class="dropdown-item">
                                             <p>
                                                 { "Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge." }
+                                                {
+                                                    if let Some(stat) = stats.attributes.get(&Attribute::Booksmart) {
+                                                        html! {
+                                                            <p class="has-text-weight-bold">{ format!("{} dice", stat) }</p>
+                                                        }
+                                                    } else {
+                                                        html! {}
+                                                    }
+                                                }
                                             </p>
                                         </div>
                                     </ybc::Dropdown>
@@ -149,6 +167,15 @@ impl Component for CharacterViewer {
                                         <div class="dropdown-item">
                                             <p>
                                                 { "Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics." }
+                                                {
+                                                    if let Some(stat) = stats.attributes.get(&Attribute::Streetwise) {
+                                                        html! {
+                                                            <p class="has-text-weight-bold">{ format!("{} dice", stat) }</p>
+                                                        }
+                                                    } else {
+                                                        html! {}
+                                                    }
+                                                }
                                             </p>
                                         </div>
                                     </ybc::Dropdown>
