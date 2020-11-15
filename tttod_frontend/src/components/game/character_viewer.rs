@@ -97,18 +97,48 @@ impl Component for CharacterViewer {
                         </ybc::Content>
                     </ybc::CardContent>
                     <ybc::CardFooter>
-                        <div class="card-footer-item">
-                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Heroic)/>
-                                {" Heroic"}
-                        </div>
-                        <div class="card-footer-item">
-                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Booksmart)/>
-                            {" Booksmart"}
-                        </div>
-                        <div class="card-footer-item">
-                            <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Streetwise)/>
-                            {" Streetwise"}
-                        </div>
+                        <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
+                            html! {
+                                <>
+                                    <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Heroic)/>
+                                    {" Heroic"}
+                                </>
+                            }
+                        }>
+                            <div class="dropdown-item">
+                                <p>
+                                    { "Brave, dramatic, powerful, physical, protecting others, leap into action, daredevil." }
+                                </p>
+                            </div>
+                        </ybc::Dropdown>
+                        <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
+                            html! {
+                                <>
+                                    <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Booksmart)/>
+                                    {" Booksmart"}
+                                </>
+                            }
+                        }>
+                            <div class="dropdown-item">
+                                <p>
+                                    { "Uncovering, deciphering, investigating, revealing, deducing, using history and knowledge." }
+                                </p>
+                            </div>
+                        </ybc::Dropdown>
+                        <ybc::Dropdown classes="card-footer-item is-up" button_classes="is-white" hoverable=true button_html={
+                            html! {
+                                <>
+                                    <Icon classes="stat-rating" name=Self::stat_to_icon(stats, Attribute::Streetwise)/>
+                                    {" Streetwise"}
+                                </>
+                            }
+                        }>
+                            <div class="dropdown-item">
+                                <p>
+                                    { "Cunning, outsmarting, fast-talking, quick thinking, fast reflexes, dodging, acrobatics." }
+                                </p>
+                            </div>
+                        </ybc::Dropdown>
                     </ybc::CardFooter>
                 </ybc::Card>
             }
