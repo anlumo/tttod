@@ -182,7 +182,7 @@ impl Component for Room {
                         }
                     }
                 </ybc::Tile>
-                <ybc::Tile vertical=false ctx=TileCtx::Parent size=TileSize::Twelve>
+                <ybc::Tile vertical=false classes="is-flex-wrap-wrap" ctx=TileCtx::Parent size=TileSize::Twelve>
                     {
                         if is_gm {
                             let mut players: Vec<_> = self.props.players.iter().filter(|(&player_id, player)| {
