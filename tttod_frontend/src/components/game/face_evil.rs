@@ -118,9 +118,11 @@ impl Component for FaceEvil {
                 <ybc::Tile vertical=false classes="is-flex-wrap-wrap" ctx=TileCtx::Parent size=TileSize::Twelve>
                     {
                         if is_gm {
-                            self.props.players.iter().filter(|(&player_id, player)| {
-                                player_id != self.props.player_id && player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed
-                            }).map(|(player_id, player)| {
+                            let mut players: Vec<_> = self.props.players.iter().filter(|(&player_id, player)| {
+                                player.condition != Condition::Dead && player.mental_condition != MentalCondition::Possessed && !self.props.gms.contains(&player_id)
+                            }).collect();
+                            players.sort_by(|(player_id_a, _), (player_id_b, _)| player_id_a.cmp(player_id_b));
+                            players.into_iter().map(|(player_id, player)| {
                                 let offer_challenge_callback = self.props.offer_challenge.clone();
                                 html! {
                                     <ybc::Tile vertical=true ctx=TileCtx::Child size=TileSize::Six>
