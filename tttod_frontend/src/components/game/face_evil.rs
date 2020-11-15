@@ -14,7 +14,7 @@ use yew::prelude::*;
 pub struct FaceEvil {
     link: ComponentLink<Self>,
     props: Props,
-    dismissed_gm_modal: bool,
+    dismissed_help_modal: bool,
 }
 
 #[derive(Debug, Clone, Properties)]
@@ -35,7 +35,8 @@ pub struct Props {
 }
 
 pub enum Msg {
-    DismissGMModal,
+    DismissHelpModal,
+    ShowHelpModalAgain,
 }
 
 impl Component for FaceEvil {
@@ -45,14 +46,18 @@ impl Component for FaceEvil {
         Self {
             link,
             props,
-            dismissed_gm_modal: false,
+            dismissed_help_modal: false,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::DismissGMModal => {
-                self.dismissed_gm_modal = true;
+            Msg::DismissHelpModal => {
+                self.dismissed_help_modal = true;
+                true
+            }
+            Msg::ShowHelpModalAgain => {
+                self.dismissed_help_modal = false;
                 true
             }
         }
@@ -65,13 +70,14 @@ impl Component for FaceEvil {
 
     fn view(&self) -> Html {
         let player = self.props.players.get(&self.props.player_id);
-        let dismiss_modal = self.link.callback(|_| Msg::DismissGMModal);
+        let dismiss_modal = self.link.callback(|_| Msg::DismissHelpModal);
         let is_gm = self.props.gms.contains(&self.props.player_id);
+        let show_hints_again_handler = self.link.callback(|_| Msg::ShowHelpModalAgain);
         html! {
             <ybc::Tile vertical=true ctx=TileCtx::Parent>
                 <ybc::Tile vertical=false ctx=TileCtx::Parent>
                     <ybc::Tile ctx=TileCtx::Child size=TileSize::Nine>
-                        <ybc::Title size=HeaderSize::Is1>
+                        <ybc::Title classes="is-flex is-align-items-center" size=HeaderSize::Is1>
                             {
                                 if is_gm {
                                     html! {
@@ -84,6 +90,7 @@ impl Component for FaceEvil {
                                 }
                             }
                             {"The Final Challenge"}
+                            <ybc::Button classes="ml-3 is-light" onclick=show_hints_again_handler><Icon classes="icon" name=IconName::QuestionCircle/></ybc::Button>
                         </ybc::Title>
                     </ybc::Tile>
                     <ybc::Tile classes="button-with-player-list" ctx=TileCtx::Child size=TileSize::Three>
@@ -167,80 +174,116 @@ impl Component for FaceEvil {
                         }
                     }
                 </ybc::Tile>
-                {
-                    if is_gm {
-                        html! {
-                            <ModalDialog id="gm-notification" is_active=!self.dismissed_gm_modal close_callback=dismiss_modal.reform(|_| ()) title={
-                                if self.props.gms.len() > 1 {
-                                    format!("You Are One of the {} Game Masters For the Final Battle!", self.props.gms.len())
-                                } else {
-                                    "You Are the Game Master For the Final Battle!".to_owned()
-                                }
-                             } body={
-                                html! {
-                                    <>
-                                        <ybc::Box classes="has-background-primary-light">
-                                            <ybc::Media>
-                                                <ybc::MediaLeft>
-                                                    <Icon classes="has-text-warning is-size-2" name=IconName::ExclamationCircle/>
-                                                </ybc::MediaLeft>
-                                                <ybc::MediaContent>
-                                                    <ybc::Title size=HeaderSize::Is5>{"Use These Secrets to Build the Final Room"}</ybc::Title>
-                                                    <ol>
-                                                        {
-                                                            for self.props.remaining_clues.iter().map(|clue| {
-                                                                html! {
-                                                                    <li>{clue}</li>
-                                                                }
-                                                            })
-                                                        }
-                                                    </ol>
-                                                </ybc::MediaContent>
-                                            </ybc::Media>
-                                        </ybc::Box>
-                                        <p class="block">
-                                            {"Once every player has been GM, the archeologists enter one final room. Here, in the in heart of the temple, \
-                                            the ancient evil awakens, ready to end the world as we know it."}
-                                        </p>
-                                        <ybc::Title size=HeaderSize::Is4>{"Help With Creating Rooms"}</ybc::Title>
-                                        <p class="block">
-                                            {"Use these for inspiration! Or pick three and combine with flair to create a chamber that reflects the secret shown above."}
-                                        </p>
-                                        <ybc::Title size=HeaderSize::Is5>{"Puzzles & Riddles"}</ybc::Title>
-                                        <p class="block">
-                                            {"Strange runic patterns, carefully arranged gems of power, statues \
-                                            with rotating heads, movable dials, a chessboard floor, countless \
-                                            levers, whispered rhymes sung by a thousand lipless mouths."}
-                                        </p>
-                                        <ybc::Title size=HeaderSize::Is5>{"Environmental Obstacles"}</ybc::Title>
-                                        <p class="block">
-                                            {"Spike pits, lava stream, walls closing in on each other, rapidly \
-                                            rising water, narrow ledges, decaying or invisible bridges, unnatural \
-                                            snow or sandstorms."}
-                                        </p>
-                                        <ybc::Title size=HeaderSize::Is5>{"Traps"}</ybc::Title>
-                                        <p class="block">
-                                            {"Flaming jets, poison darts, trapped chests, fake floors, cursed \
-                                            altars, rolling boulders, deadly illusions, reverse or shifting \
-                                            gravity, cursed magical items."}
-                                        </p>
-                                        <ybc::Title size=HeaderSize::Is5>{"Enemies"}</ybc::Title>
-                                        <p class="block">
-                                            {"Venomous snakes, roaming mummies, dark spirits, swarm of scarab \
-                                            beetles or scorpions, Nazis, cult members, and of course the most \
-                                            terrifying of all: evil archeologists."}
-                                        </p>
-                                    </>
-                                }
-                            } footer={
-                                html! {
-                                    <>
-                                        <ybc::Button onclick=dismiss_modal.reform(|_| ())><Icon classes="icon" name=IconName::Gopuram/><span>{"The Final Room is Ready!"}</span></ybc::Button>
-                                    </>
-                                }
-                            }/>
+                <ModalDialog id="gm-notification" is_active=!self.dismissed_help_modal close_callback=dismiss_modal.reform(|_| ()) title={
+                        if is_gm {
+                            if self.props.gms.len() > 1 {
+                                format!("You Are One of the {} Game Masters For the Final Battle!", self.props.gms.len())
+                            } else {
+                                "You Are the Game Master For the Final Battle!".to_owned()
+                            }
+                        } else {
+                            "It's Time for the Final Battle!".to_owned()
                         }
-                    } else if let Some(player) = player {
+                    } body={
+                        if is_gm {
+                            html! {
+                                <>
+                                    <ybc::Box classes="has-background-primary-light">
+                                        <ybc::Media>
+                                            <ybc::MediaLeft>
+                                                <Icon classes="has-text-warning is-size-2" name=IconName::ExclamationCircle/>
+                                            </ybc::MediaLeft>
+                                            <ybc::MediaContent>
+                                                <ybc::Title size=HeaderSize::Is5>{"Use These Secrets to Build the Final Room"}</ybc::Title>
+                                                <ol>
+                                                    {
+                                                        for self.props.remaining_clues.iter().map(|clue| {
+                                                            html! {
+                                                                <li>{clue}</li>
+                                                            }
+                                                        })
+                                                    }
+                                                </ol>
+                                            </ybc::MediaContent>
+                                        </ybc::Media>
+                                    </ybc::Box>
+                                    <p class="block">
+                                        {"Once every player has been GM, the archeologists enter one final room. Here, in the in heart of the temple, \
+                                        the ancient evil awakens, ready to end the world as we know it."}
+                                    </p>
+                                    <p class="block">
+                                        { format!("This battle works a bit differently than the rooms: For every challenge, the challenging player has to pick \
+                                        a secret they're going to use against the Ancient Evil. If they succeed, the secret is used up. The players \
+                                        have to succeed {} challenges.", self.props.target_successes) }
+                                    </p>
+                                    <p class="block">
+                                        { "If a player fails a challenge, they have two choices: The first option is to accept failure. Then the secret is lost. \
+                                        If the players don't have enough remaining secrets to achieve victory, it's all over. The second option is to take a \
+                                        wound. They don't get a success from this, but the secret is not lost and can be used again." }
+                                    </p>
+                                    <ybc::Title size=HeaderSize::Is4>{"Help With Creating Rooms"}</ybc::Title>
+                                    <p class="block">
+                                        {"Use these for inspiration! Or pick three and combine with flair to create a chamber that reflects the secret shown above."}
+                                    </p>
+                                    <ybc::Title size=HeaderSize::Is5>{"Puzzles & Riddles"}</ybc::Title>
+                                    <p class="block">
+                                        {"Strange runic patterns, carefully arranged gems of power, statues \
+                                        with rotating heads, movable dials, a chessboard floor, countless \
+                                        levers, whispered rhymes sung by a thousand lipless mouths."}
+                                    </p>
+                                    <ybc::Title size=HeaderSize::Is5>{"Environmental Obstacles"}</ybc::Title>
+                                    <p class="block">
+                                        {"Spike pits, lava stream, walls closing in on each other, rapidly \
+                                        rising water, narrow ledges, decaying or invisible bridges, unnatural \
+                                        snow or sandstorms."}
+                                    </p>
+                                    <ybc::Title size=HeaderSize::Is5>{"Traps"}</ybc::Title>
+                                    <p class="block">
+                                        {"Flaming jets, poison darts, trapped chests, fake floors, cursed \
+                                        altars, rolling boulders, deadly illusions, reverse or shifting \
+                                        gravity, cursed magical items."}
+                                    </p>
+                                    <ybc::Title size=HeaderSize::Is5>{"Enemies"}</ybc::Title>
+                                    <p class="block">
+                                        {"Venomous snakes, roaming mummies, dark spirits, swarm of scarab \
+                                        beetles or scorpions, Nazis, cult members, and of course the most \
+                                        terrifying of all: evil archeologists."}
+                                    </p>
+                                </>
+                            }
+                        } else {
+                            html! {
+                                <>
+                                    <p class="block">
+                                        { format!("This battle works a bit differently than the rooms: For every challenge, the challenging player has to pick \
+                                        a secret they're going to use against the Ancient Evil. If they succeed, the secret is used up. The players \
+                                        have to succeed {} challenges.", self.props.target_successes) }
+                                    </p>
+                                    <p class="block">
+                                        { "If a player fails a challenge, they have two choices: The first option is to accept failure. Then the secret is lost. \
+                                        If the players don't have enough remaining secrets to achieve victory, it's all over. The second option is to take a \
+                                        wound. They don't get a success from this, but the secret is not lost and can be used again." }
+                                    </p>
+                                </>
+                            }
+                        }
+                    } footer={
+                        html! {
+                            <ybc::Button onclick=dismiss_modal.reform(|_| ())><Icon classes="icon" name=IconName::Gopuram/>
+                                <span>
+                                {
+                                    if is_gm {
+                                        "The Final Room is Ready!"
+                                    } else {
+                                        "I'm Ready for the Final Room!"
+                                    }
+                                }
+                                </span>
+                            </ybc::Button>
+                        }
+                    }/>
+                {
+                    if let Some(player) = player {
                         let accept_challenge_callback = self.props.accept_challenge.clone();
                         let reject_challenge_callback = self.props.reject_challenge.clone();
                         if let Some((challenge, clue_idx)) = self.props.evil_state.challenge.as_ref() {
