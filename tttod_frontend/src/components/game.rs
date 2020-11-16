@@ -193,8 +193,11 @@ impl Component for Game {
                 false
             }
             Msg::AcceptFate => {
-                self.send_message(ClientToServerMessage::AcceptFate);
-                self.challenge_result = None;
+                if let Some(challenge_result) = self.challenge_result.take() {
+                    if challenge_result.can_use_artifact || !challenge_result.success {
+                        self.send_message(ClientToServerMessage::AcceptFate);
+                    }
+                }
                 false
             }
             Msg::SetWebsocket(meta, sink) => {
