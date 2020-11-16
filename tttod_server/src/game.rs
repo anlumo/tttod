@@ -956,6 +956,10 @@ impl GameManager {
                                         if success {
                                             successes += 1;
                                             current_challenge = None;
+                                            if possession {
+                                                player.mental_condition =
+                                                    player.mental_condition.take_hit();
+                                            }
                                         } else {
                                             current_artifact_used =
                                                 Some(player.stats.as_ref().unwrap().artifact_boon);
