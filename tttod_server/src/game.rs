@@ -1295,6 +1295,10 @@ impl GameManager {
                                             remaining_clues.remove(*clue_idx);
                                             current_challenge_result = None;
                                             current_challenge = None;
+                                            if possession {
+                                                player.mental_condition =
+                                                    player.mental_condition.take_hit();
+                                            }
                                         } else {
                                             current_artifact_used =
                                                 Some(player.stats.as_ref().unwrap().artifact_boon);
